@@ -1,0 +1,220 @@
+id: "env-variable"
+level: "beginner"
+title: "The Missing Environment Variable"
+duration: "16 minutes"
+teaches:
+  - "Environment Variables"
+  - "Configuration"
+  - "Deployment"
+
+context: |
+  You just deployed your app to production for the first time!
+
+  Everything worked perfectly on your local machine. But after deploying
+  to the production server, the app crashes immediately on startup.
+
+  The error message is cryptic. The logs aren't helpful.
+
+  Your job: Figure out what's different between local and production.
+
+tabs:
+  - name: "Error"
+    type: "text"
+    content: |
+      Application Error
+
+      TypeError: Cannot read property 'connect' of undefined
+        at Database.connect (db.js:12)
+        at Server.start (server.js:8)
+
+      Exit code: 1
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "11:32:10"
+        level: "INFO"
+        message: "Starting application..."
+      - time: "11:32:10"
+        level: "INFO"
+        message: "Environment: production"
+      - time: "11:32:10"
+        level: "INFO"
+        message: "Loading configuration..."
+      - time: "11:32:10"
+        level: "ERROR"
+        message: "DATABASE_URL is undefined"
+        is_answer: true
+      - time: "11:32:10"
+        level: "FATAL"
+        message: "Cannot connect to database - missing connection string"
+        is_answer: true
+      - time: "11:32:10"
+        level: "ERROR"
+        message: "Application crashed"
+
+  - name: "Code"
+    type: "code"
+    content:
+      language: "javascript"
+      content: |
+        // db.js
+        const mongoose = require('mongoose');
+
+        // Get database URL from environment
+        const dbUrl = process.env.DATABASE_URL;
+
+        async function connect() {
+          await mongoose.connect(dbUrl);
+          console.log('Database connected');
+        }
+
+        module.exports = { connect };
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # Environment Variables
+
+      **What are they?**
+      Configuration values that change between environments
+      (local, staging, production).
+
+      **Why use them?**
+      - Keep secrets out of code
+      - Different config per environment
+      - Easy to change without redeploying
+
+      **Common env vars:**
+      - `DATABASE_URL` - Database connection string
+      - `API_KEY` - Third-party API keys
+      - `PORT` - Server port
+      - `NODE_ENV` - Environment name (development/production)
+
+      **Local Setup (.env file):**
+      ```
+      DATABASE_URL=mongodb://localhost:27017/myapp
+      API_KEY=dev_key_12345
+      PORT=3000
+      ```
+
+      **Production Setup:**
+      Set in your hosting platform:
+      - Heroku: `heroku config:set DATABASE_URL=...`
+      - AWS: Environment variables in console
+      - Vercel: Settings → Environment Variables
+
+      **Loading in Code:**
+      ```javascript
+      require('dotenv').config(); // Loads .env file
+      const dbUrl = process.env.DATABASE_URL;
+      ```
+
+tasks:
+  - type: "multiple-choice"
+    question: "Why does the app crash in production but work locally?"
+    options:
+      - "The production server is out of memory"
+      - "The database server is down"
+      - "DATABASE_URL environment variable is not set in production"
+      - "The code has a syntax error"
+    correct: 2
+    explanation: |
+      Exactly! This is a classic deployment issue.
+
+      What's happening:
+      - Local: You have a .env file with DATABASE_URL set
+      - Production: No .env file, no DATABASE_URL configured
+      - Code tries to use undefined variable → Crash!
+
+      Your .env file only exists on your local machine.
+      When you deploy, you need to configure environment variables
+      separately in your production hosting platform.
+
+  - type: "code-fix"
+    instructions: "Add validation to give a clear error message if DATABASE_URL is missing"
+    starting_code: |
+      // db.js
+      const mongoose = require('mongoose');
+
+      const dbUrl = process.env.DATABASE_URL;
+
+      // Add validation here:
+
+
+      async function connect() {
+        await mongoose.connect(dbUrl);
+        console.log('Database connected');
+      }
+
+    validation:
+      must_contain:
+        - "if"
+        - "DATABASE_URL"
+        - "throw"
+    solution: |
+      // db.js
+      const mongoose = require('mongoose');
+
+      const dbUrl = process.env.DATABASE_URL;
+
+      // Validate required environment variables
+      if (!dbUrl) {
+        throw new Error(
+          'DATABASE_URL environment variable is not set. ' +
+          'Please configure it in your hosting platform.'
+        );
+      }
+
+      async function connect() {
+        await mongoose.connect(dbUrl);
+        console.log('Database connected');
+      }
+    explanation: |
+      Perfect! Now the error message is clear and actionable.
+
+      Before:
+      "Cannot read property 'connect' of undefined" (cryptic!)
+
+      After:
+      "DATABASE_URL environment variable is not set.
+       Please configure it in your hosting platform." (helpful!)
+
+      This pattern is called "fail fast" - detect problems early
+      with clear error messages rather than mysterious crashes later.
+
+completion:
+  summary: |
+    # What You Learned
+
+    ## The Problem
+    Environment variables work differently in local vs production.
+    Your .env file doesn't get deployed - you must configure
+    production variables separately.
+
+    ## The Fix
+    1. Add validation for required environment variables
+    2. Configure them in your hosting platform
+    3. Provide clear error messages when they're missing
+
+    ## How to Prevent This
+    - Document all required environment variables in README
+    - Create a .env.example file showing what's needed
+    - Validate env vars at startup with clear errors
+    - Use a deployment checklist
+    - Test in a staging environment first
+
+    ## Production Checklist
+    ```
+    ☐ Set DATABASE_URL
+    ☐ Set API keys
+    ☐ Set NODE_ENV=production
+    ☐ Configure secrets/passwords
+    ☐ Set up monitoring
+    ```
+
+  resources:
+    - title: "The Twelve-Factor App: Config"
+      url: "https://12factor.net/config"
+    - title: "dotenv Documentation"
+      url: "https://github.com/motdotla/dotenv"

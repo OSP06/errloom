@@ -1,0 +1,208 @@
+id: "cors-error"
+level: "beginner"
+title: "The CORS Error"
+duration: "17 minutes"
+teaches:
+  - "CORS"
+  - "HTTP Headers"
+  - "Browser Security"
+
+context: |
+  You built a simple weather API and a frontend to display the data.
+
+  Your setup:
+  - API: http://api.myweather.com
+  - Frontend: http://www.myweather.com
+
+  The API works perfectly when you test it directly in Postman.
+  But when you open the website, the browser shows an error and no data loads.
+
+  Your job: Figure out why the browser can't access the API.
+
+tabs:
+  - name: "Error"
+    type: "text"
+    content: |
+      Console Error:
+
+      Access to fetch at 'http://api.myweather.com/current'
+      from origin 'http://www.myweather.com' has been blocked
+      by CORS policy: No 'Access-Control-Allow-Origin' header
+      is present on the requested resource.
+
+      Status: (failed) net::ERR_FAILED
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "16:45:12"
+        level: "INFO"
+        message: "GET /current from www.myweather.com"
+      - time: "16:45:12"
+        level: "INFO"
+        message: "Response sent: 200 OK"
+      - time: "16:45:12"
+        level: "WARN"
+        message: "Browser blocked response - missing CORS headers"
+        is_answer: true
+      - time: "16:45:13"
+        level: "INFO"
+        message: "OPTIONS /current from www.myweather.com (preflight)"
+      - time: "16:45:13"
+        level: "ERROR"
+        message: "No CORS headers configured - request blocked"
+        is_answer: true
+
+  - name: "Code"
+    type: "code"
+    content:
+      language: "javascript"
+      content: |
+        // api.js
+        const express = require('express');
+        const app = express();
+
+        // Weather endpoint
+        app.get('/current', (req, res) => {
+          const weather = {
+            temp: 72,
+            condition: 'sunny',
+            humidity: 45
+          };
+
+          res.json(weather);
+        });
+
+        app.listen(3000);
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # CORS (Cross-Origin Resource Sharing)
+
+      **What is CORS?**
+      A security feature that prevents websites from making requests
+      to different domains without permission.
+
+      **Why does it exist?**
+      Without CORS, evil.com could make requests to yourbank.com
+      using YOUR cookies and steal your data!
+
+      **The Solution:**
+      The API must send CORS headers to allow specific origins:
+      ```javascript
+      res.setHeader('Access-Control-Allow-Origin', 'http://www.myweather.com');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      ```
+
+      **Common CORS Headers:**
+      - `Access-Control-Allow-Origin`: Which domains can access
+      - `Access-Control-Allow-Methods`: Which HTTP methods
+      - `Access-Control-Allow-Headers`: Which headers are allowed
+      - `Access-Control-Allow-Credentials`: Allow cookies
+
+      **Wildcard (use carefully!):**
+      ```javascript
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      // Allows ALL domains - only use for public APIs
+      ```
+
+tasks:
+  - type: "multiple-choice"
+    question: "Why is the browser blocking the API request?"
+    options:
+      - "The API is returning an error"
+      - "The API is too slow to respond"
+      - "The API doesn't have CORS headers allowing the frontend domain"
+      - "The frontend has a typo in the URL"
+    correct: 2
+    explanation: |
+      Correct! This is a CORS (Cross-Origin Resource Sharing) error.
+
+      What's happening:
+      1. Frontend at www.myweather.com tries to fetch from api.myweather.com
+      2. Browser says: "These are different domains! Need permission!"
+      3. Browser checks the API response for CORS headers
+      4. No headers found → Request blocked for security
+
+      The API works in Postman because Postman doesn't enforce CORS.
+      Only web browsers enforce CORS to protect users.
+
+  - type: "code-fix"
+    instructions: "Add CORS headers to allow requests from www.myweather.com"
+    starting_code: |
+      app.get('/current', (req, res) => {
+        // Add CORS headers here:
+
+
+        const weather = {
+          temp: 72,
+          condition: 'sunny',
+          humidity: 45
+        };
+
+        res.json(weather);
+      });
+
+    validation:
+      must_contain:
+        - "Access-Control-Allow-Origin"
+        - "www.myweather.com"
+    solution: |
+      app.get('/current', (req, res) => {
+        // Add CORS headers
+        res.setHeader('Access-Control-Allow-Origin', 'http://www.myweather.com');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+        const weather = {
+          temp: 72,
+          condition: 'sunny',
+          humidity: 45
+        };
+
+        res.json(weather);
+      });
+    explanation: |
+      Excellent! Now the API tells the browser:
+      "It's okay to share my data with www.myweather.com"
+
+      The browser sees these headers and allows the request to complete.
+
+      Important notes:
+      - Only add origins you trust
+      - Never use '*' if your API requires authentication
+      - Use HTTPS in production
+
+      Your frontend can now load weather data! ✓
+
+completion:
+  summary: |
+    # What You Learned
+
+    ## The Problem
+    Browsers block cross-origin requests by default to prevent
+    malicious websites from stealing data from other sites.
+
+    ## The Fix
+    Add CORS headers to your API responses to explicitly allow
+    specific origins to access your data.
+
+    ## How to Prevent This
+    - Plan your domains early (api.example.com vs example.com)
+    - Use CORS middleware in Express: `app.use(cors())`
+    - Test from the actual frontend domain, not just Postman
+    - Consider using a reverse proxy to avoid CORS entirely
+
+    ## Production Tips
+    - Use environment variables for allowed origins
+    - Never use '*' for authenticated APIs
+    - Always use HTTPS in production
+    - Handle preflight OPTIONS requests
+
+  resources:
+    - title: "MDN: CORS Guide"
+      url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS"
+    - title: "Express CORS Middleware"
+      url: "https://expressjs.com/en/resources/middleware/cors.html"

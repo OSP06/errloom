@@ -1,0 +1,213 @@
+id: "slow-api"
+level: "beginner"
+title: "The Slow API"
+duration: "20 minutes"
+teaches:
+  - "Performance"
+  - "Database Queries"
+  - "N+1 Problem"
+
+context: |
+  Your homepage is live and working! But users are complaining it's slow.
+
+  The page shows a list of 100 blog posts, and each post displays:
+  - Title
+  - Author name
+  - Number of comments
+
+  Loading the page takes 8 seconds. Your boss is not happy.
+
+  Your job: Find out why it's slow and fix it.
+
+tabs:
+  - name: "Performance"
+    type: "text"
+    content: |
+      Page Load Metrics:
+
+      Time to First Byte: 7,850ms
+      DOM Content Loaded: 8,120ms
+      Page Fully Loaded: 8,340ms
+
+      ⚠️ Users expect pages to load in under 2 seconds!
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "14:23:01.000"
+        level: "INFO"
+        message: "GET /api/posts started"
+      - time: "14:23:01.050"
+        level: "INFO"
+        message: "Query: SELECT * FROM posts LIMIT 100 (took 45ms)"
+      - time: "14:23:01.100"
+        level: "INFO"
+        message: "Query: SELECT * FROM users WHERE id = 1 (took 8ms)"
+      - time: "14:23:01.115"
+        level: "INFO"
+        message: "Query: SELECT * FROM users WHERE id = 2 (took 7ms)"
+      - time: "14:23:01.130"
+        level: "INFO"
+        message: "Query: SELECT * FROM users WHERE id = 3 (took 8ms)"
+      - time: "14:23:01.145"
+        level: "INFO"
+        message: "..."
+      - time: "14:23:08.850"
+        level: "INFO"
+        message: "Query: SELECT * FROM users WHERE id = 100 (took 9ms)"
+        is_answer: true
+      - time: "14:23:08.850"
+        level: "WARN"
+        message: "Request took 7850ms - very slow!"
+        is_answer: true
+
+  - name: "Code"
+    type: "code"
+    content:
+      language: "javascript"
+      content: |
+        // api/posts.js
+        async function getPosts() {
+          // Get all posts
+          const posts = await db.query(
+            'SELECT * FROM posts LIMIT 100'
+          );
+
+          // Get author for each post
+          for (const post of posts) {
+            const author = await db.query(
+              'SELECT * FROM users WHERE id = ?',
+              [post.author_id]
+            );
+            post.author = author;
+          }
+
+          return posts;
+        }
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # The N+1 Query Problem
+
+      **What is it?**
+      Making 1 query to get a list, then N additional queries to get related data.
+
+      **Example:**
+      - 1 query: Get 100 posts
+      - 100 queries: Get author for each post
+      - Total: 101 queries (very slow!)
+
+      **The Fix:**
+      Use a JOIN to get everything in one query:
+      ```sql
+      SELECT posts.*, users.name as author_name
+      FROM posts
+      JOIN users ON posts.author_id = users.id
+      LIMIT 100
+      ```
+
+      **Why it's faster:**
+      - 1 query instead of 101
+      - Database does the work efficiently
+      - Network round-trips reduced from 101 to 1
+
+tasks:
+  - type: "multiple-choice"
+    question: "What's causing the slow page load?"
+    options:
+      - "The server is down"
+      - "Too much data being returned"
+      - "Making 100 separate queries for user data"
+      - "The database is out of disk space"
+    correct: 2
+    explanation: |
+      Correct! This is the classic N+1 query problem.
+
+      The code makes:
+      - 1 query to get 100 posts
+      - 100 queries to get each author (one per post)
+
+      Each query takes ~8ms, so 100 queries = 800ms just on database calls.
+      Plus network overhead = 7+ seconds total!
+
+  - type: "code-fix"
+    instructions: "Fix the code to use a single JOIN query instead of N+1 queries"
+    starting_code: |
+      async function getPosts() {
+        // Rewrite this to use a JOIN
+        const posts = await db.query(
+          'SELECT * FROM posts LIMIT 100'
+        );
+
+        for (const post of posts) {
+          const author = await db.query(
+            'SELECT * FROM users WHERE id = ?',
+            [post.author_id]
+          );
+          post.author = author;
+        }
+
+        return posts;
+      }
+
+    validation:
+      must_contain:
+        - "JOIN"
+        - "users"
+      must_not_contain:
+        - "for"
+        - "forEach"
+    solution: |
+      async function getPosts() {
+        const posts = await db.query(`
+          SELECT
+            posts.*,
+            users.name as author_name,
+            users.email as author_email
+          FROM posts
+          JOIN users ON posts.author_id = users.id
+          LIMIT 100
+        `);
+
+        return posts;
+      }
+    explanation: |
+      Perfect! Now we're making 1 query instead of 101.
+
+      The JOIN tells the database to combine posts and users tables
+      in a single query. This is MUCH faster because:
+
+      1. Only 1 network round-trip
+      2. Database can optimize the query
+      3. All data returned at once
+
+      Page load time: 7,850ms → 80ms (98% improvement!)
+
+completion:
+  summary: |
+    # What You Learned
+
+    ## The Problem
+    The N+1 query problem is one of the most common performance issues.
+    It happens when you load a list, then make a separate query for
+    each item's related data.
+
+    ## The Fix
+    Use JOINs to get all related data in a single query.
+
+    ## How to Prevent This
+    - Use an ORM with eager loading (.include() in Sequelize)
+    - Monitor slow queries in production
+    - Use database query logging in development
+    - Profile your API endpoints regularly
+
+    ## Real-World Impact
+    - Twitter fixed N+1 queries and reduced page load by 3 seconds
+    - Shopify optimized queries and saved $100k/month in server costs
+
+  resources:
+    - title: "Understanding the N+1 Query Problem"
+      url: "https://stackoverflow.com/questions/97197/what-is-the-n1-selects-problem"
+    - title: "SQL JOIN Tutorial"
+      url: "https://www.w3schools.com/sql/sql_join.asp"

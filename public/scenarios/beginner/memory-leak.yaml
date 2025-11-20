@@ -1,0 +1,222 @@
+id: "memory-leak"
+level: "beginner"
+title: "The Memory Leak"
+duration: "18 minutes"
+teaches:
+  - "Memory Management"
+  - "Event Listeners"
+  - "Resource Cleanup"
+
+context: |
+  Your web app has been running fine for weeks. But today, after 6 hours
+  of uptime, it crashed with "Out of Memory" error.
+
+  The app is a real-time chat that shows active users. Every time someone
+  joins or leaves, the user list updates.
+
+  After restarting, it runs fine... until it crashes again 6 hours later.
+
+  Your job: Find the memory leak and fix it.
+
+tabs:
+  - name: "Error"
+    type: "text"
+    content: |
+      FATAL ERROR: JavaScript heap out of memory
+
+      Process: node server.js
+      Memory used: 2048 MB / 2048 MB (100%)
+
+      The application has crashed and will restart.
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "09:00:00"
+        level: "INFO"
+        message: "Server started. Memory: 45 MB"
+      - time: "09:30:00"
+        level: "INFO"
+        message: "50 users online. Memory: 120 MB"
+      - time: "12:00:00"
+        level: "INFO"
+        message: "200 users online. Memory: 450 MB"
+      - time: "14:00:00"
+        level: "WARN"
+        message: "Memory usage high: 980 MB"
+        is_answer: true
+      - time: "15:00:00"
+        level: "ERROR"
+        message: "Memory at 2000 MB! Crashing soon..."
+        is_answer: true
+      - time: "15:12:34"
+        level: "FATAL"
+        message: "Out of memory - shutting down"
+
+  - name: "Code"
+    type: "code"
+    content:
+      language: "javascript"
+      content: |
+        // chat.js
+        class ChatRoom {
+          constructor() {
+            this.users = [];
+          }
+
+          addUser(user) {
+            this.users.push(user);
+
+            // Listen for user messages
+            user.on('message', (msg) => {
+              this.broadcast(msg);
+            });
+
+            // Listen for user disconnect
+            user.on('disconnect', () => {
+              this.removeUser(user);
+            });
+          }
+
+          removeUser(user) {
+            // Remove from array
+            const index = this.users.indexOf(user);
+            this.users.splice(index, 1);
+
+            // Hmm... forgot something?
+          }
+
+          broadcast(message) {
+            this.users.forEach(user => {
+              user.send(message);
+            });
+          }
+        }
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # Memory Leaks in JavaScript
+
+      **What is a memory leak?**
+      Memory that's no longer needed but isn't released back to the system.
+
+      **Common causes:**
+      1. **Event listeners not removed** ⚠️ Most common!
+      2. Global variables that accumulate data
+      3. Closures holding references
+      4. Forgotten timers (setInterval)
+
+      **Event Listener Leaks:**
+      ```javascript
+      // BAD - Leak!
+      element.addEventListener('click', handler);
+      element.remove(); // Handler still in memory!
+
+      // GOOD - No leak
+      element.addEventListener('click', handler);
+      element.removeEventListener('click', handler);
+      element.remove(); // Handler is cleaned up
+      ```
+
+      **How to detect:**
+      - Memory usage keeps growing over time
+      - Doesn't drop after users disconnect
+      - Crashes after hours/days of uptime
+
+tasks:
+  - type: "multiple-choice"
+    question: "What's causing the memory leak?"
+    options:
+      - "Too many users connecting at once"
+      - "Event listeners not being removed when users disconnect"
+      - "The users array is too big"
+      - "The server needs more RAM"
+    correct: 1
+    explanation: |
+      Exactly right! This is a classic event listener memory leak.
+
+      What's happening:
+      1. User connects → we add 2 event listeners ('message', 'disconnect')
+      2. User disconnects → we remove them from the array
+      3. BUT we never remove the event listeners!
+
+      So even though the user disconnected, the event listeners are
+      still in memory, keeping references to the user object.
+
+      After 1000 users connect and disconnect, we have 2000 orphaned
+      event listeners in memory!
+
+  - type: "code-fix"
+    instructions: "Fix the memory leak by properly cleaning up event listeners"
+    starting_code: |
+      removeUser(user) {
+        // Remove from array
+        const index = this.users.indexOf(user);
+        this.users.splice(index, 1);
+
+        // Add cleanup code here:
+
+      }
+
+    validation:
+      must_contain:
+        - "removeListener"
+        - "message"
+        - "disconnect"
+    solution: |
+      removeUser(user) {
+        // Remove from array
+        const index = this.users.indexOf(user);
+        this.users.splice(index, 1);
+
+        // Clean up event listeners
+        user.removeAllListeners('message');
+        user.removeAllListeners('disconnect');
+      }
+    explanation: |
+      Perfect! Now when users disconnect, we properly clean up.
+
+      The fix:
+      - Remove the user from the array ✓
+      - Remove all event listeners ✓
+
+      This ensures no references are held in memory after disconnect.
+
+      Memory usage now:
+      - Before: Grows forever, crashes in 6 hours
+      - After: Stable at ~200 MB, runs indefinitely ✓
+
+completion:
+  summary: |
+    # What You Learned
+
+    ## The Problem
+    Event listeners create strong references. If you don't remove them,
+    they keep objects in memory even after you're done with them.
+
+    ## The Fix
+    Always clean up event listeners when you're done:
+    - removeEventListener() in browsers
+    - removeAllListeners() in Node.js
+
+    ## How to Prevent This
+    - Use a linter rule to catch missing cleanup
+    - Profile memory usage in staging
+    - Monitor production memory metrics
+    - Use weak references when appropriate
+
+    ## The Pattern
+    ```javascript
+    // Setup
+    element.addEventListener('click', handler);
+
+    // Cleanup (don't forget!)
+    element.removeEventListener('click', handler);
+    ```
+
+  resources:
+    - title: "JavaScript Memory Management"
+      url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management"
+    - title: "Finding Memory Leaks with Chrome DevTools"
+      url: "https://developer.chrome.com/docs/devtools/memory-problems/"

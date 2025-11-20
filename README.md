@@ -1,0 +1,262 @@
+# 🔥 OutageLab
+
+**Debug Production Outages in Your Browser**
+
+OutageLab is an interactive learning platform that teaches developers how to debug real-world production outages. Practice troubleshooting common issues like 404 errors, N+1 queries, memory leaks, CORS errors, and environment variable misconfigurations—all in your browser with no setup required.
+
+[![Built with React](https://img.shields.io/badge/React-19.2-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-7.2-purple.svg)](https://vitejs.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+## ✨ Features
+
+- **🎯 Interactive Scenarios** - Real-world production debugging exercises
+- **📊 Three Difficulty Levels** - Beginner, Intermediate, and Advanced scenarios
+- **💻 Multiple Task Types** - Multiple choice questions, code fixes, and log analysis
+- **🎨 Modern UI** - Clean, responsive interface built with React and Tailwind CSS
+- **🔧 Monaco Editor** - Full-featured code editor (VS Code's editor)
+- **📈 Progress Tracking** - Track completion across scenarios
+- **🎓 Educational Resources** - Links to additional learning materials
+- **🚀 No Setup Required** - 100% browser-based, no cloud or backend needed
+
+## 🎮 Available Scenarios
+
+### Beginner Level (5 scenarios, ~86 minutes)
+
+1. **The 404 Error** (15 min)
+   - Learn: HTTP, Logs, Routing
+   - Debug a missing route causing 404 errors
+
+2. **The Slow API** (20 min)
+   - Learn: Performance, Database Queries, N+1 Problem
+   - Fix an N+1 query problem slowing down your homepage
+
+3. **The Memory Leak** (18 min)
+   - Learn: Memory Management, Event Listeners, Cleanup
+   - Track down event listeners causing memory leaks
+
+4. **The CORS Error** (17 min)
+   - Learn: CORS, HTTP Headers, Browser Security
+   - Understand why your API works in Postman but not in browsers
+
+5. **The Missing Environment Variable** (16 min)
+   - Learn: Environment Variables, Configuration, Deployment
+   - Fix production crashes caused by missing configuration
+
+### Intermediate Level (Coming Soon)
+- Database Connection Pool Exhaustion
+- Cache Invalidation Issues
+- Queue Management Problems
+- Deployment Rollback Scenarios
+
+### Advanced Level (Coming Soon)
+- Reddit Kubernetes Outage
+- GitLab Data Loss Incident
+- Discord Redis Failure
+- AWS Cascade Failure
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/outagelab.git
+cd outagelab
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`
+
+### Build for Production
+
+```bash
+# Build the application
+npm run build
+
+# Preview the production build
+npm run preview
+```
+
+## 🏗️ Project Structure
+
+```
+outagelab/
+├── public/
+│   └── scenarios/          # YAML scenario definitions
+│       ├── beginner/
+│       │   ├── 404-error.yaml
+│       │   ├── slow-api.yaml
+│       │   ├── memory-leak.yaml
+│       │   ├── cors-error.yaml
+│       │   └── env-variable.yaml
+│       ├── intermediate/   # Coming soon
+│       └── advanced/       # Coming soon
+├── src/
+│   ├── components/         # React components
+│   │   ├── ScenarioPlayer.tsx
+│   │   ├── TaskPanel.tsx
+│   │   ├── LogViewer.tsx
+│   │   ├── CodeEditor.tsx
+│   │   └── TabNavigation.tsx
+│   ├── lib/
+│   │   ├── types.ts        # TypeScript type definitions
+│   │   └── scenarioLoader.ts
+│   ├── pages/
+│   │   ├── Landing.tsx
+│   │   └── ScenarioList.tsx
+│   ├── App.tsx
+│   └── main.tsx
+├── package.json
+├── vite.config.ts
+├── tailwind.config.js
+└── tsconfig.json
+```
+
+## 📝 Creating New Scenarios
+
+Scenarios are defined in YAML files under `public/scenarios/{level}/`. Here's the structure:
+
+```yaml
+id: "scenario-id"
+level: "beginner"
+title: "Scenario Title"
+duration: "15 minutes"
+teaches:
+  - "Concept 1"
+  - "Concept 2"
+
+context: |
+  Background story and setup for the scenario...
+
+tabs:
+  - name: "Error"
+    type: "text"
+    content: |
+      Error message or information...
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "10:23:45"
+        level: "ERROR"
+        message: "Error description"
+        is_answer: true
+
+  - name: "Code"
+    type: "code"
+    content:
+      language: "javascript"
+      content: |
+        // Code snippet
+
+tasks:
+  - type: "multiple-choice"
+    question: "What's causing the issue?"
+    options:
+      - "Option 1"
+      - "Option 2"
+      - "Correct answer"
+    correct: 2
+    explanation: |
+      Explanation of the correct answer...
+
+completion:
+  summary: |
+    What the user learned...
+  resources:
+    - title: "Resource Title"
+      url: "https://example.com"
+```
+
+## 🛠️ Tech Stack
+
+- **Frontend Framework**: React 19.2
+- **Language**: TypeScript 5.9
+- **Build Tool**: Vite 7.2
+- **Routing**: React Router DOM 7.9
+- **State Management**: Zustand 5.0
+- **Styling**: Tailwind CSS 4.1
+- **Code Editor**: Monaco Editor (VS Code's editor)
+- **Icons**: Lucide React
+- **YAML Parsing**: js-yaml
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+1. **Add New Scenarios** - Create YAML files for intermediate and advanced scenarios
+2. **Improve Existing Scenarios** - Enhance explanations, add hints, or improve task descriptions
+3. **Bug Fixes** - Report and fix bugs
+4. **Feature Requests** - Suggest new features or improvements
+5. **Documentation** - Improve documentation and examples
+
+### Development Workflow
+
+```bash
+# Fork and clone the repository
+git clone https://github.com/yourusername/outagelab.git
+
+# Create a feature branch
+git checkout -b feature/your-feature-name
+
+# Make your changes and test
+npm run dev
+
+# Run linting
+npm run lint
+
+# Build to verify
+npm run build
+
+# Commit and push
+git add .
+git commit -m "Add your feature description"
+git push origin feature/your-feature-name
+
+# Open a Pull Request
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Inspired by real-world production incidents and outage postmortems
+- Built with modern web technologies and best practices
+- Community-driven scenario contributions
+
+## 🌟 Show Your Support
+
+If you find this project helpful, please consider:
+
+- ⭐ Starring the repository
+- 🐛 Reporting bugs or issues
+- 💡 Suggesting new scenarios
+- 🔗 Sharing with others
+
+## 📧 Contact
+
+For questions, suggestions, or feedback:
+
+- Open an issue on GitHub
+- Email: [your-email@example.com]
+- Twitter: [@yourusername]
+
+---
+
+**Made with ❤️ for developers learning production debugging**
+
+🔥 **Start debugging now at [outagelab.dev](https://outagelab.dev)**

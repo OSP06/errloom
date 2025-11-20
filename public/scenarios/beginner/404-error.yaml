@@ -1,0 +1,137 @@
+id: "404-error"
+level: "beginner"
+title: "The 404 Error"
+duration: "15 minutes"
+teaches:
+  - "HTTP"
+  - "Logs"
+  - "Routing"
+
+context: |
+  You just launched your first website! It's a simple blog with three pages:
+  - Home page (/)
+  - About page (/about)
+  - Contact page (/contact)
+
+  A user reports: "The About link is broken. I get an error."
+
+  Your job: Figure out what's wrong and fix it.
+
+tabs:
+  - name: "Error"
+    type: "text"
+    content: |
+      404 Not Found
+      The page you're looking for doesn't exist.
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "10:23:45"
+        level: "INFO"
+        message: "Server started on port 3000"
+      - time: "10:24:12"
+        level: "INFO"
+        message: "GET /home → 200 OK"
+      - time: "10:24:15"
+        level: "ERROR"
+        message: "GET /about → 404 Not Found"
+        is_answer: true
+      - time: "10:24:18"
+        level: "INFO"
+        message: "GET /contact → 200 OK"
+
+  - name: "Code"
+    type: "code"
+    content:
+      language: "javascript"
+      content: |
+        // routes.js
+        app.get('/', (req, res) => {
+          res.send('Home Page');
+        });
+
+        app.get('/contact', (req, res) => {
+          res.send('Contact Page');
+        });
+
+        // Hmm, something's missing...
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # HTTP Status Codes
+      - **200 OK**: Request successful
+      - **404 Not Found**: The requested URL doesn't exist
+      - **500 Internal Server Error**: Server crashed
+
+      # Common Causes of 404 Errors
+      1. Route not defined in code
+      2. Typo in URL
+      3. File doesn't exist
+
+tasks:
+  - type: "multiple-choice"
+    question: "What's causing the 404 error?"
+    options:
+      - "The server is down"
+      - "The user typed the wrong URL"
+      - "The /about route is not defined"
+      - "There's a database error"
+    correct: 2
+    explanation: |
+      Correct! The logs show that /home and /contact return 200 OK,
+      but /about returns 404 Not Found.
+
+      Looking at the code, we only defined routes for / and /contact.
+      The /about route is missing.
+
+  - type: "code-fix"
+    instructions: "Add the missing /about route"
+    starting_code: |
+      app.get('/', (req, res) => {
+        res.send('Home Page');
+      });
+
+      app.get('/contact', (req, res) => {
+        res.send('Contact Page');
+      });
+
+      // Add the /about route here:
+
+    validation:
+      must_contain:
+        - "app.get('/about'"
+        - "res.send"
+    solution: |
+      app.get('/about', (req, res) => {
+        res.send('About Page');
+      });
+    explanation: |
+      Great! You added the missing route handler.
+
+      Now when users visit /about, the server will respond
+      with "About Page" and return 200 OK instead of 404.
+
+completion:
+  summary: |
+    # What You Learned
+
+    ## The Problem
+    Web servers need explicit route definitions. When a user
+    requests a URL that doesn't have a corresponding route,
+    the server returns a 404 error.
+
+    ## The Fix
+    We added the missing route handler for /about.
+
+    ## How to Prevent This
+    - Write tests for all routes
+    - Use a route listing tool in development
+    - Check logs after deploying
+
+  resources:
+    - title: "HTTP Status Codes Explained"
+      url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status"
+    - title: "Express.js Routing Guide"
+      url: "https://expressjs.com/en/guide/routing.html"
