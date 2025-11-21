@@ -1,0 +1,189 @@
+id: "gitlab-data-loss"
+level: "advanced"
+title: "GitLab's Accidental Database Deletion"
+duration: "30 minutes"
+teaches:
+  - "Database Replication"
+  - "Backup & Recovery"
+  - "Human Error Prevention"
+  - "Post-Mortems"
+
+context: |
+  You're a database admin at GitLab. It's 1:30 AM.
+  
+  Production database replication is lagging. You need to fix it.
+  
+  You SSH into what you THINK is the staging database server.
+  
+  You run: rm -rf /var/opt/gitlab/postgresql/data
+  
+  Then your heart stops. You're on PRODUCTION.
+  
+  You just started deleting 300GB of production data.
+  6 hours of data will be lost. 5,000+ projects gone.
+  
+  Based on GitLab's actual incident from January 31, 2017.
+  
+  Your job: Stop deletion and recover what you can.
+
+tabs:
+  - name: "Terminal"
+    type: "text"
+    content: |
+      production-db-1:~$ rm -rf /var/opt/gitlab/postgresql/data
+      
+      [Files being deleted...]
+      
+      75GB... 150GB... 225GB...
+      
+      [You press Ctrl+C]
+      
+      STOPPED at 276GB (out of 300GB)
+      
+      Data lost: 276GB (92%!)
+      Time: 01:35 AM
+      Last backup: 24 hours ago
+      Last snapshot: 6 hours ago (untested!)
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "01:00:00"
+        level: "WARN"
+        message: "Database replication lag: 6 hours"
+      - time: "01:15:00"
+        level: "INFO"
+        message: "Engineer SSH to production-db-1 (thought it was staging!)"
+        is_answer: true
+      - time: "01:20:00"
+        level: "INFO"
+        message: "Command: rm -rf /var/opt/gitlab/postgresql/data"
+      - time: "01:35:00"
+        level: "FATAL"
+        message: "Deletion stopped: 276GB deleted, 24GB remaining"
+        is_answer: true
+      - time: "18:00:00"
+        level: "INFO"
+        message: "Recovery complete - 6 hours of data lost"
+
+  - name: "Recovery Options"
+    type: "text"
+    content: |
+      Available Recovery Options:
+      
+      1. DAILY BACKUPS
+         Last: 24 hours ago
+         Status: ✓ Available
+         Data loss: 24 hours
+      
+      2. LVM SNAPSHOTS
+         Last: 6 hours ago
+         Status: ? Untested
+         Data loss: 6 hours IF it works
+      
+      3. STAGING REPLICA
+         Lag: 6 hours behind
+         Status: ✓ Available
+         Data loss: 6 hours
+      
+      4. AZURE SNAPSHOTS
+         Status: ✗ Disabled to save costs
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # Database Disaster Recovery
+      
+      **The 5 Deadly Assumptions:**
+      1. "My backups work" (Have you tested restore?)
+      2. "I'm on staging" (Check your prompt!)
+      3. "Replication is real-time" (Monitor lag!)
+      4. "Multiple backups = safe" (Are they working?)
+      5. "We'll never need backups" (You will)
+      
+      **3-2-1 Backup Rule:**
+      - 3 copies of data
+      - 2 different media
+      - 1 copy offsite
+
+tasks:
+  - type: "multiple-choice"
+    question: "What was the root cause?"
+    options:
+      - "Database corruption"
+      - "Human error - SSH'd to production thinking it was staging"
+      - "Replication failed"
+      - "Hacker attack"
+    correct: 1
+    explanation: |
+      Correct! 100% human error.
+      
+      The cascade:
+      1. Engineer fixing replication lag
+      2. SSH'd to production-db-1 (thought staging)
+      3. No clear terminal indicator
+      4. Ran destructive command
+      5. Realized after 276GB deleted
+      
+      Secondary failures:
+      - Azure snapshots disabled (cost savings)
+      - LVM snapshots never tested
+      - S3 backups not configured
+      - Replication lagging 6 hours
+
+  - type: "multiple-choice"
+    question: "Which recovery option?"
+    options:
+      - "Daily backup (24 hours old)"
+      - "LVM snapshot (untested)"
+      - "Staging replica (6 hours lag)"
+      - "Azure snapshots (disabled)"
+    correct: 2
+    explanation: |
+      Staging replica is best:
+      
+      ❌ Daily backup: 24 hours loss
+      ❌ LVM: Untested = gambling
+      ✅ Staging replica: 6 hours loss, proven to work
+      ❌ Azure: Not available
+      
+      In real incident, GitLab used staging replica.
+      Lost 6 hours of data (5,000+ projects).
+      After 18 hours, fully restored.
+      
+      Lesson: Use TESTED recovery in crisis.
+
+completion:
+  summary: |
+    # What You Learned
+    
+    ## The Problem
+    GitLab had multiple backup systems, but when disaster struck,
+    most were broken or untested. 276GB of production data deleted
+    thinking it was staging.
+    
+    ## The Real Incident
+    January 31, 2017: Engineer troubleshooting replication lag
+    SSH'd to production (thought staging) and ran rm -rf.
+    Stopped at 276GB/300GB deleted. Recovered from staging replica
+    after 18 hours with 6 hours of data lost.
+    
+    ## What GitLab Changed
+    1. Monthly restore drills
+    2. Big red "PRODUCTION" prompt
+    3. Separate SSH keys prod/staging
+    4. Confirmation for destructive commands
+    5. Improved monitoring
+    6. Published transparent post-mortem
+    
+    ## Key Lessons
+    - Test your backups (untested = broken)
+    - Make prod obvious
+    - Multiple backups (verify ALL work)
+    - Document disaster recovery
+  
+  resources:
+    - title: "GitLab's Post-Mortem"
+      url: "https://about.gitlab.com/blog/2017/02/01/gitlab-dot-com-database-incident/"
+    - title: "Live Recovery Stream"
+      url: "https://www.youtube.com/watch?v=tLdRBsuvVKc"

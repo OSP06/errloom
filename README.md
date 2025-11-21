@@ -66,11 +66,29 @@ OutageLab is an interactive learning platform that teaches developers how to deb
    - Learn: Rate Limiting, API Dependencies, Circuit Breakers
    - Stripe is rate limiting you. User retries make it 8x worse
 
-### Advanced Level (Coming Soon)
-- Reddit Kubernetes Outage
-- GitLab Data Loss Incident
-- Discord Redis Failure
-- AWS Cascade Failure
+### Advanced Level (5 scenarios, ~160 minutes)
+
+Real production disasters from major tech companies!
+
+1. **Reddit's Kubernetes Meltdown** (35 min)
+   - Learn: Kubernetes, Auto-scaling, Resource Limits, Cascading Failures
+   - Death spiral: 50 healthy pods → 500 crashing pods in 60 seconds
+
+2. **GitLab's Accidental Database Deletion** (30 min)
+   - Learn: Database Replication, Backup & Recovery, Human Error Prevention
+   - You ran rm -rf on production. 276GB deleted. Backups are broken. Now what?
+
+3. **Discord's Redis Cascade Failure** (32 min)
+   - Learn: Redis Clustering, Cache Failures, Circuit Breakers, Graceful Degradation
+   - @everyone to 5M users. 50K req/sec to one key. Redis melting down
+
+4. **AWS S3 Cascade Failure** (33 min)
+   - Learn: Service Dependencies, Blast Radius, Circuit Breakers, Incident Response
+   - Typo removed 500 servers. S3 down. Half the internet down. Can't report outage!
+
+5. **Cloudflare's BGP Route Leak** (30 min)
+   - Learn: BGP Routing, Network Infrastructure, Global Outages, Internet Architecture
+   - Small ISP misconfigured BGP. Global traffic routing through Pennsylvania
 
 ## 🚀 Quick Start
 
@@ -123,7 +141,12 @@ outagelab/
 │       │   ├── failed-deployment.yaml
 │       │   ├── queue-backup.yaml
 │       │   └── rate-limit-cascade.yaml
-│       └── advanced/       # Coming soon
+│       └── advanced/
+│           ├── reddit-k8s-outage.yaml
+│           ├── gitlab-data-loss.yaml
+│           ├── discord-redis-failure.yaml
+│           ├── aws-cascade-failure.yaml
+│           └── cloudflare-bgp-hijack.yaml
 ├── src/
 │   ├── components/         # React components
 │   │   ├── ScenarioPlayer.tsx

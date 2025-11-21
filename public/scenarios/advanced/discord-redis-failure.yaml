@@ -1,0 +1,250 @@
+id: "discord-redis-failure"
+level: "advanced"
+title: "Discord's Redis Cascade Failure"
+duration: "32 minutes"
+teaches:
+  - "Redis Clustering"
+  - "Cache Failures"
+  - "Circuit Breakers"
+  - "Graceful Degradation"
+
+context: |
+  You're an SRE at Discord. Peak hours - 15 million users online.
+  
+  Suddenly: "Cannot connect to Redis - connection timeout"
+  
+  Platform crashing. Messages not sending. Voice dying. API 500 errors.
+  
+  You check Redis - 100% CPU. But why?
+  
+  You see it: 50,000 req/sec hitting ONE Redis key.
+  A popular server posted @everyone. 5M users loading same message.
+  
+  Redis can't handle it. App has NO fallback. Every request retries.
+  
+  Based on Discord's actual July 2020 outage.
+  
+  Your job: Stop cascade and implement fallbacks.
+
+tabs:
+  - name: "Metrics"
+    type: "text"
+    content: |
+      Redis Status:
+      CPU: 100%
+      Connections: 50,000/10,000 max (OVERLOAD!)
+      
+      Normal: 5,000 req/sec
+      Current: 45,000 req/sec (9x!)
+      
+      Hot Key:
+      "message:829384756392"
+      Requests: 50,000/sec
+      Size: 2MB
+      
+      Impact:
+      API success: 12% (was 99.9%)
+      ⚠️ Single key killing cluster!
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "19:45:00"
+        level: "INFO"
+        message: "Popular server @everyone announcement"
+      - time: "19:45:03"
+        level: "ERROR"
+        message: "Redis timeouts - 5000ms response"
+        is_answer: true
+      - time: "19:45:05"
+        level: "ERROR"
+        message: "50K concurrent requests to one key"
+        is_answer: true
+      - time: "19:45:20"
+        level: "ERROR"
+        message: "Clients retrying - making it worse!"
+        is_answer: true
+      - time: "19:45:30"
+        level: "FATAL"
+        message: "Cascade - voice, messages, presence all down"
+
+  - name: "Code"
+    type: "code"
+    content:
+      language: "python"
+      content: |
+        async def get_message(message_id):
+            cache_key = f"message:{message_id}"
+            
+            try:
+                cached = await redis.get(cache_key)
+                if cached:
+                    return cached
+            except RedisTimeout:
+                # No fallback! Just fail!
+                raise HTTPException(500, "Cache unavailable")
+            
+            message = await db.query(
+                "SELECT * FROM messages WHERE id = ?", 
+                message_id
+            )
+            
+            await redis.set(cache_key, message, ex=3600)
+            return message
+        
+        # Problems:
+        # 1. No circuit breaker
+        # 2. No fallback
+        # 3. No rate limiting per key
+        # 4. Retries amplify load
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # Hot Key Problem
+      
+      **What is hot key?**
+      One key getting way more requests than others,
+      overwhelming single Redis node (single-threaded per key).
+      
+      **Solutions:**
+      1. Client-side caching
+      2. Read replicas
+      3. Circuit breakers
+      4. Graceful degradation
+
+tasks:
+  - type: "multiple-choice"
+    question: "What caused the cascade?"
+    options:
+      - "Redis out of memory"
+      - "Hot key with 50K req/sec overwhelmed Redis. No fallback = every request failed and retried"
+      - "Database down"
+      - "Too many users"
+    correct: 1
+    explanation: |
+      Correct! Hot key cascade.
+      
+      Sequence:
+      1. @everyone to 5M members
+      2. All try to load message
+      3. 50K req/sec to ONE key
+      4. Redis single-threaded per key
+      5. Timeouts (5+ seconds)
+      6. No fallback → 500 errors
+      7. Clients retry → MORE requests
+      8. Redis 100% CPU
+      9. Platform-wide failure
+
+  - type: "code-fix"
+    instructions: "Add circuit breaker and graceful degradation"
+    starting_code: |
+      async def get_message(message_id):
+          cache_key = f"message:{message_id}"
+          
+          # Add circuit breaker and fallback:
+          
+          
+          try:
+              cached = await redis.get(cache_key)
+              if cached:
+                  return cached
+          except RedisTimeout:
+              raise HTTPException(500)
+          
+          message = await db.query(...)
+          await redis.set(cache_key, message)
+          return message
+      
+    validation:
+      must_contain:
+        - "circuit_breaker"
+        - "fallback"
+        - "except"
+    solution: |
+      from pybreaker import CircuitBreaker
+      
+      redis_breaker = CircuitBreaker(
+          fail_max=50,
+          timeout_duration=60
+      )
+      
+      local_cache = {}
+      
+      async def get_message(message_id):
+          cache_key = f"message:{message_id}"
+          
+          # Local cache first (prevents hot key)
+          if message_id in local_cache:
+              cached_time, value = local_cache[message_id]
+              if time.time() - cached_time < 10:
+                  return value
+          
+          # Try Redis with circuit breaker
+          if redis_breaker.current_state == "closed":
+              try:
+                  cached = await asyncio.wait_for(
+                      redis.get(cache_key),
+                      timeout=1.0
+                  )
+                  if cached:
+                      local_cache[message_id] = (time.time(), cached)
+                      return cached
+              except (RedisTimeout, asyncio.TimeoutError):
+                  redis_breaker.call(lambda: None)
+          
+          # Fallback to database (graceful degradation)
+          message = await db.query(...)
+          local_cache[message_id] = (time.time(), message)
+          
+          try:
+              await redis.set(cache_key, message)
+          except:
+              pass  # Redis down, that's fine
+          
+          return message
+    explanation: |
+      Excellent! Multiple protections:
+      
+      1. Local cache (10s TTL):
+         50K requests → 1 Redis request/10s
+      2. Circuit breaker:
+         Opens after failures
+      3. Fast timeouts (1s):
+         Fail fast, fallback faster
+      4. Graceful degradation:
+         Redis fails → use database
+      
+      Result: Hot key can't kill system ✓
+
+completion:
+  summary: |
+    # What You Learned
+    
+    ## The Problem
+    Hot keys overwhelm Redis. Without fallbacks, creates cascades
+    when client retries amplify load exponentially.
+    
+    ## The Real Incident
+    Discord July 2020: Popular server @everyone to 5M members.
+    All tried loading message simultaneously. 50K req/sec to one key.
+    Redis couldn't keep up, entire platform failed for 30 minutes.
+    
+    ## What Discord Changed
+    1. Client-side caching
+    2. Circuit breakers
+    3. Read replicas for hot keys
+    4. Fallback to database
+    5. Per-key rate limiting
+    
+    ## Key Lessons
+    - Caching can fail
+    - Hot keys are inevitable
+    - Circuit breakers essential
+    - Local caching reduces load
+  
+  resources:
+    - title: "Discord Hot Key Post-Mortem"
+      url: "https://discord.com/blog/how-discord-stores-billions-of-messages"
+    - title: "Circuit Breaker Pattern"
+      url: "https://martinfowler.com/bliki/CircuitBreaker.html"

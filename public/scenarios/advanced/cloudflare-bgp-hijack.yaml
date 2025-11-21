@@ -1,0 +1,244 @@
+id: "cloudflare-bgp-hijack"
+level: "advanced"
+title: "Cloudflare's BGP Route Leak"
+duration: "30 minutes"
+teaches:
+  - "BGP Routing"
+  - "Network Infrastructure"
+  - "Global Outages"
+  - "Internet Architecture"
+
+context: |
+  You're on call at Cloudflare. June 24, 2019, 2:00 PM PST.
+  
+  Suddenly, alerts everywhere. Traffic routing through strange paths.
+  CPU spikes to 100% globally.
+  
+  Users worldwide: "Internet is broken"
+  
+  You check BGP routes. Your jaw drops.
+  
+  A small ISP in Pennsylvania just announced incorrect BGP routes.
+  They're claiming THEY are the best path to:
+  - Cloudflare
+  - Amazon
+  - Facebook
+  - Linode
+  
+  Half the internet's traffic routing through their tiny network.
+  They can't handle 1% of this. Everything melting down.
+  
+  This isn't malicious. It's a config error that broke the internet.
+  
+  Your job: Understand BGP and prevent route leaks.
+
+tabs:
+  - name: "BGP Status"
+    type: "text"
+    content: |
+      Global Routing Status:
+      
+      Incorrect BGP Announcements from:
+      AS396531 (Allegheny Technologies/Verizon)
+      
+      Claiming to be best path to:
+      - Cloudflare (1.1.1.1)
+      - Amazon AWS
+      - Facebook
+      - Linode
+      - 20,000+ other networks
+      
+      Impact:
+      - Traffic misrouted globally
+      - Small ISP overwhelmed
+      - Packet loss: 60%+
+      - Latency: 5000ms+ (was 50ms)
+      
+      Duration: 90 minutes
+      Affected: Millions of users worldwide
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "14:00:00"
+        level: "INFO"
+        message: "Normal operations - all green"
+      - time: "14:05:00"
+        level: "WARN"
+        message: "BGP route changes detected from AS396531"
+        is_answer: true
+      - time: "14:05:30"
+        level: "ERROR"
+        message: "Traffic routing through Allegheny - not optimal path!"
+        is_answer: true
+      - time: "14:06:00"
+        level: "ERROR"
+        message: "CPU spike - handling misrouted traffic"
+      - time: "14:10:00"
+        level: "FATAL"
+        message: "Global degradation - BGP route leak affecting worldwide traffic"
+        is_answer: true
+      - time: "15:30:00"
+        level: "INFO"
+        message: "BGP routes corrected - service recovering"
+
+  - name: "BGP Explanation"
+    type: "text"
+    content: |
+      BGP (Border Gateway Protocol):
+      The routing protocol of the internet
+      
+      How it works:
+      1. ISPs announce: "I can reach these IPs"
+      2. Routers pick shortest path
+      3. Traffic flows to announced destination
+      
+      The Problem (Route Leak):
+      1. Small ISP misconfigures BGP
+      2. Announces: "I'm best path to Cloudflare!"
+      3. Routers believe it
+      4. Global traffic routes through them
+      5. They can't handle the load
+      6. Internet breaks
+      
+      Why it's hard to fix:
+      - BGP trusts all announcements
+      - No authentication
+      - Takes time to propagate corrections
+      - Manual intervention required
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # BGP Route Leaks
+      
+      **What is BGP?**
+      Border Gateway Protocol - how internet routes traffic.
+      
+      **The Problem:**
+      BGP has no authentication. Any ISP can announce
+      "I'm the best path to X" and routers believe it.
+      
+      **Famous BGP Incidents:**
+      - 2008: Pakistan tries to block YouTube nationally,
+        accidentally blocks it globally
+      - 2017: Google accidentally leaked 180,000 routes
+      - 2019: Cloudflare (this scenario)
+      - 2021: Facebook outage (withdrew own routes)
+      
+      **Prevention:**
+      1. RPKI - Cryptographic validation of routes
+      2. Route filtering - Don't accept suspicious routes
+      3. Monitoring - Detect route changes quickly
+      4. Relationships - Only accept from trusted peers
+
+tasks:
+  - type: "multiple-choice"
+    question: "What caused the global outage?"
+    options:
+      - "Cloudflare's servers crashed"
+      - "Small ISP misconfigured BGP and announced themselves as best path, routing global traffic through their tiny network"
+      - "DDoS attack"
+      - "Cable cut"
+    correct: 1
+    explanation: |
+      Correct! BGP route leak.
+      
+      Sequence:
+      1. Allegheny/Verizon misconfigured BGP
+      2. Announced: "We're best path to Cloudflare!"
+      3. Routers worldwide believed it
+      4. Global traffic routed through Pennsylvania
+      5. Small ISP couldn't handle 0.1% of the load
+      6. Massive packet loss and latency
+      7. Internet appeared broken
+      
+      Why it happened:
+      - BGP has no authentication
+      - Routers trust all announcements
+      - Human config error
+      - Takes time to fix (manual)
+      
+      Impact:
+      - 90 minutes of degradation
+      - Millions of users affected
+      - Cloudflare, Amazon, Facebook impacted
+
+  - type: "multiple-choice"
+    question: "How can BGP route leaks be prevented?"
+    options:
+      - "Shut down BGP"
+      - "Use RPKI for cryptographic route validation and filter suspicious routes"
+      - "Block all ISPs"
+      - "Use only one ISP"
+    correct: 1
+    explanation: |
+      Correct! RPKI and route filtering.
+      
+      **RPKI (Resource Public Key Infrastructure):**
+      - Cryptographically signs route announcements
+      - Routers can verify: "Is this ISP authorized?"
+      - Prevents accidental and malicious leaks
+      
+      **Route Filtering:**
+      - Don't accept all announcements blindly
+      - Filter based on known relationships
+      - Reject suspicious changes
+      
+      **Monitoring:**
+      - Detect route changes quickly
+      - Alert on unexpected paths
+      - Automated response
+      
+      After this incident:
+      - More ISPs deployed RPKI
+      - Better monitoring
+      - Stricter filtering
+      - But BGP still fundamentally trusts
+      
+      The internet runs on trust - scary!
+
+completion:
+  summary: |
+    # What You Learned
+    
+    ## The Problem
+    BGP has no authentication. A misconfigured ISP can announce
+    themselves as the best path to anywhere, routing global traffic
+    through their network and causing massive outages.
+    
+    ## The Real Incident
+    June 24, 2019: Small ISP (Allegheny/Verizon) misconfigured BGP
+    and announced themselves as best path to Cloudflare, Amazon,
+    Facebook, and 20,000+ other networks. Global traffic routed
+    through Pennsylvania. 90 minutes of degradation affecting millions.
+    
+    ## What Changed
+    1. More RPKI deployment
+    2. Better route filtering
+    3. Improved monitoring
+    4. Faster incident response
+    5. Industry collaboration
+    
+    ## Key Lessons
+    - BGP runs on trust (dangerous)
+    - Single config error = global impact
+    - RPKI provides authentication
+    - Route filtering is essential
+    - Monitoring detects leaks quickly
+    - Internet infrastructure is fragile
+    
+    ## Why It's Hard to Fix
+    - BGP designed 30 years ago
+    - Replacing it requires global coordination
+    - Backwards compatibility needed
+    - Deployed everywhere
+    - Works "well enough" most of the time
+  
+  resources:
+    - title: "Cloudflare BGP Post-Mortem"
+      url: "https://blog.cloudflare.com/how-verizon-and-a-bgp-optimizer-knocked-large-parts-of-the-internet-offline-today/"
+    - title: "BGP Routing Explained"
+      url: "https://www.cloudflare.com/learning/security/glossary/what-is-bgp/"
+    - title: "RPKI Explained"
+      url: "https://blog.cloudflare.com/rpki/"

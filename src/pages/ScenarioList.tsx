@@ -99,13 +99,49 @@ const scenarios = {
   ],
   advanced: [
     {
-      id: 'reddit-k8s',
-      title: 'Reddit Kubernetes Outage',
-      duration: '45 min',
-      teaches: ['Kubernetes', 'Networking', 'DNS'],
-      description: 'Recreate and solve Reddit\'s 2020 Kubernetes outage.',
+      id: 'reddit-k8s-outage',
+      title: 'Reddit\'s Kubernetes Meltdown',
+      duration: '35 min',
+      teaches: ['Kubernetes', 'Auto-scaling', 'Resource Limits'],
+      description: 'Auto-scaler death spiral: 50 healthy pods → 500 crashing pods in 60 seconds. Stop it!',
       completed: false,
-      locked: true
+      locked: false
+    },
+    {
+      id: 'gitlab-data-loss',
+      title: 'GitLab\'s Accidental Database Deletion',
+      duration: '30 min',
+      teaches: ['Backups', 'Human Error', 'Disaster Recovery'],
+      description: 'You just ran rm -rf on production. 276GB deleted. Your backups are broken. Now what?',
+      completed: false,
+      locked: false
+    },
+    {
+      id: 'discord-redis-failure',
+      title: 'Discord\'s Redis Cascade Failure',
+      duration: '32 min',
+      teaches: ['Redis', 'Hot Keys', 'Circuit Breakers'],
+      description: '@everyone to 5M users. 50K req/sec to one key. Redis melting. No fallback. Cascade!',
+      completed: false,
+      locked: false
+    },
+    {
+      id: 'aws-cascade-failure',
+      title: 'AWS S3 Cascade Failure',
+      duration: '33 min',
+      teaches: ['Dependencies', 'Blast Radius', 'Cascades'],
+      description: 'Typo removed 500 servers instead of 5. S3 down. Half the internet down. Status page down!',
+      completed: false,
+      locked: false
+    },
+    {
+      id: 'cloudflare-bgp-hijack',
+      title: 'Cloudflare\'s BGP Route Leak',
+      duration: '30 min',
+      teaches: ['BGP', 'Network Infrastructure', 'Internet Architecture'],
+      description: 'Small ISP misconfigured BGP. Global traffic routing through Pennsylvania. Internet broken.',
+      completed: false,
+      locked: false
     }
   ]
 };

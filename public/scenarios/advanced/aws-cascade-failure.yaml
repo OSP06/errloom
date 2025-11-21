@@ -1,0 +1,218 @@
+id: "aws-cascade-failure"
+level: "advanced"
+title: "AWS S3 Cascade Failure"
+duration: "33 minutes"
+teaches:
+  - "Service Dependencies"
+  - "Blast Radius"
+  - "Circuit Breakers"
+  - "Incident Response"
+
+context: |
+  You're on the AWS team. February 28, 2017, 9:37 AM PST.
+  
+  An engineer is removing S3 servers for maintenance. They make a typo.
+  
+  Instead of removing 5 servers, the script removes 500 servers.
+  
+  Within seconds, S3 goes down in us-east-1. But that's not the worst part.
+  
+  Thousands of services depend on S3:
+  - Your status page (down - can't report outage!)
+  - Your billing system (down - can't see what's broken!)
+  - Your monitoring (down - flying blind!)
+  - Half the internet's images and files
+  
+  Based on the actual AWS outage that broke the internet.
+  
+  Your job: Understand blast radius and prevent cascades.
+
+tabs:
+  - name: "Impact"
+    type: "text"
+    content: |
+      S3 Service Status:
+      Region: us-east-1
+      Status: DOWN (100% error rate)
+      
+      Command: remove-capacity --count=5
+      Result: Removed 500 servers (typo!)
+      
+      Downstream Impact:
+      ❌ AWS Status Page - DOWN (on S3!)
+      ❌ Health Dashboard - DOWN
+      ❌ CloudWatch - DEGRADED
+      ❌ EC2 launches - FAILING
+      ❌ Lambda - FAILING
+      ❌ 150,000+ websites affected
+      
+      Blast radius: MASSIVE
+      Can't even report outage!
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "09:37:00"
+        level: "INFO"
+        message: "Executing: remove-capacity --count=5"
+      - time: "09:37:01"
+        level: "ERROR"
+        message: "Parsing error: removed 500 servers instead of 5"
+        is_answer: true
+      - time: "09:37:05"
+        level: "FATAL"
+        message: "S3 capacity below minimum threshold"
+        is_answer: true
+      - time: "09:37:30"
+        level: "ERROR"
+        message: "Status page unavailable - stored on S3!"
+        is_answer: true
+      - time: "14:30:00"
+        level: "INFO"
+        message: "Service restored after 4h 53min"
+
+  - name: "Architecture"
+    type: "code"
+    content:
+      language: "yaml"
+      content: |
+        # Service Dependency Map
+        
+        S3:
+          status: DOWN
+          depended_by:
+            - status_page      # ⚠️ Can't report!
+            - health_dashboard # ⚠️ Can't see health!
+            - cloudwatch       # ⚠️ Can't see metrics!
+            - 150000+ websites
+        
+        status_page:
+          status: DOWN
+          dependencies: [S3]  # CRITICAL MISTAKE!
+          purpose: "Report outages"
+          irony_level: MAXIMUM
+        
+        # Problem: Circular dependency!
+        # S3 down → Can't report S3 is down
+        
+        # Single Point of Failure
+        # No circuit breakers
+        # Blast radius: UNCONTAINED
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # Cascading Failures
+      
+      **Blast Radius:**
+      Total impact when one service fails.
+      
+      **The Cascade:**
+      ```
+      S3 fails → Status page fails → Can't report
+               → Monitoring fails → Can't see
+               → Everything fails → Internet broken
+      ```
+      
+      **Critical Mistakes:**
+      1. Status page depends on what it monitors
+      2. No circuit breakers
+      3. Single point of failure
+      
+      **Prevention:**
+      - Status page on separate infrastructure
+      - Circuit breakers everywhere
+      - Graceful degradation
+
+tasks:
+  - type: "multiple-choice"
+    question: "What made this catastrophic?"
+    options:
+      - "Engineer was malicious"
+      - "S3 was single point of failure for thousands of services, including AWS's own status page"
+      - "No backups"
+      - "Servers caught fire"
+    correct: 1
+    explanation: |
+      Exactly! Ultimate cascade failure.
+      
+      The irony:
+      1. S3 goes down
+      2. Status page (on S3) goes down
+      3. Can't report S3 is down!
+      4. Monitoring (uses S3) goes down
+      5. Can't see what's broken!
+      
+      Blast radius:
+      - 150,000+ websites down
+      - AWS's own tools down
+      - 4 hours 53 minutes to recover
+      
+      Root causes:
+      1. Typo in command
+      2. No confirmation for destruction
+      3. Status page on what it monitors
+      4. No circuit breakers
+      5. Single point of failure
+
+  - type: "multiple-choice"
+    question: "How should status page be designed?"
+    options:
+      - "Host on S3 with backups"
+      - "Host on separate infrastructure that doesn't depend on S3"
+      - "Don't have status page"
+      - "Make S3 never fail"
+    correct: 1
+    explanation: |
+      Correct! Status page must be independent.
+      
+      Why critical:
+      - Exists to report outages
+      - If depends on broken service, can't report
+      - Creates information blackout
+      
+      After incident, AWS moved status page to:
+      - Separate region
+      - Different infrastructure
+      - No S3 dependencies
+      
+      Principle: **Monitoring must be separate
+      from production.**
+
+completion:
+  summary: |
+    # What You Learned
+    
+    ## The Problem
+    Typo removed 500 S3 servers instead of 5, causing largest AWS
+    outage. Blast radius massive because thousands of services
+    (including AWS's tools) depended on S3.
+    
+    ## The Real Incident
+    February 28, 2017: AWS engineer debugging S3, ran command to
+    remove capacity. Typo removed far more than intended. S3 down
+    in us-east-1 for 5 hours. Status page couldn't report (on S3).
+    Monitoring couldn't show metrics (used S3). 150,000+ websites down.
+    
+    ## What AWS Changed
+    1. Removed single points of failure
+    2. Status page separated
+    3. Confirmations for destructive commands
+    4. Capacity minimums
+    5. Faster recovery procedures
+    6. Regular failure testing
+    
+    ## Key Lessons
+    - Status pages must be independent
+    - Understand blast radius
+    - Circuit breakers everywhere
+    - Graceful degradation
+    - Avoid single points of failure
+    - Confirmations for destruction
+    - Chaos engineering
+  
+  resources:
+    - title: "AWS S3 Post-Mortem (Official)"
+      url: "https://aws.amazon.com/message/41926/"
+    - title: "The Day S3 Broke the Internet"
+      url: "https://www.theverge.com/2017/3/2/14792442/amazon-s3-outage-cause-typo-internet-server"

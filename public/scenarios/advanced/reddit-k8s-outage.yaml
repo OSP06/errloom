@@ -1,0 +1,233 @@
+id: "reddit-k8s-outage"
+level: "advanced"
+title: "Reddit's Kubernetes Meltdown"
+duration: "35 minutes"
+teaches:
+  - "Kubernetes"
+  - "Auto-scaling"
+  - "Resource Limits"
+  - "Cascading Failures"
+
+context: |
+  You're the SRE on-call for Reddit. It's 3 AM.
+  
+  PagerDuty alerts: "HIGH CPU across all pods - site degraded"
+  
+  Within 2 minutes, the entire site goes dark. 100 million users
+  can't access Reddit. Your phone is exploding with alerts.
+  
+  Kubernetes is auto-scaling pods like crazy - from 50 to 500 pods
+  in 60 seconds. But instead of fixing the problem, it's making it worse!
+  
+  The cluster is now at 100% CPU. Every new pod crashes immediately.
+  
+  Based on the actual Reddit outage from June 2020.
+  
+  Your job: Stop the runaway auto-scaling and restore service.
+
+tabs:
+  - name: "Dashboard"
+    type: "text"
+    content: |
+      Kubernetes Cluster Status:
+      
+      Pods: 487/50 (target: 50)
+      CPU: 98% across all nodes
+      Memory: 87%
+      
+      Pod Status:
+      - Running: 12
+      - CrashLoopBackOff: 475
+      
+      Auto-scaler: ACTIVE (scaling up!)
+      Target CPU: 70%
+      Current CPU: 98%
+      
+      ⚠️ New pods starting every 2 seconds!
+      ⚠️ Each new pod crashes within 10 seconds!
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "03:00:00"
+        level: "INFO"
+        message: "Traffic spike detected - 2x normal load"
+      - time: "03:00:15"
+        level: "WARN"
+        message: "CPU usage at 75% - triggering auto-scale"
+      - time: "03:00:45"
+        level: "ERROR"
+        message: "Pod reddit-web-78 OOMKilled - insufficient memory"
+        is_answer: true
+      - time: "03:01:15"
+        level: "ERROR"
+        message: "CPU at 95% - HPA scaling: 100 → 200 pods"
+      - time: "03:01:30"
+        level: "FATAL"
+        message: "Node memory exhausted - pods failing to start"
+        is_answer: true
+      - time: "03:02:00"
+        level: "FATAL"
+        message: "Site completely down - no healthy pods"
+
+  - name: "Pod Config"
+    type: "code"
+    content:
+      language: "yaml"
+      content: |
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: reddit-web
+        spec:
+          replicas: 50
+          template:
+            spec:
+              containers:
+              - name: web
+                resources:
+                  limits:
+                    memory: "256Mi"
+                    cpu: "200m"
+        
+        ---
+        apiVersion: autoscaling/v2
+        kind: HorizontalPodAutoscaler
+        metadata:
+          name: reddit-web-hpa
+        spec:
+          minReplicas: 50
+          maxReplicas: 500
+          metrics:
+          - type: Resource
+            resource:
+              name: cpu
+              target:
+                averageUtilization: 70
+        
+        # Problem: Pods need 512Mi but only get 256Mi!
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # Kubernetes Auto-scaling Death Spiral
+      
+      **The Death Spiral:**
+      ```
+      High CPU → Scale Up → Insufficient Resources
+           ↑                        ↓
+      Still High CPU ← Pod Crashes ←
+      ```
+      
+      **Prevention:**
+      1. Set realistic resource limits
+      2. Test under load
+      3. Set max replicas conservatively
+      4. Monitor memory AND CPU
+
+tasks:
+  - type: "multiple-choice"
+    question: "What's causing the cascading failure?"
+    options:
+      - "Too much traffic"
+      - "Pods have insufficient memory (256Mi) so they crash, keeping CPU high, triggering more scaling"
+      - "The auto-scaler is broken"
+      - "Memory leak"
+    correct: 1
+    explanation: |
+      Correct! Resource limit death spiral.
+      
+      The sequence:
+      1. Traffic spike → CPU at 75%
+      2. HPA scales 50 → 100 pods
+      3. Each pod needs 512Mi but only gets 256Mi
+      4. New pods OOMKill immediately
+      5. Crashing pods consume CPU
+      6. CPU stays high → more scaling
+      7. Spiral continues until cluster dies
+
+  - type: "code-fix"
+    instructions: "Fix the deployment to prevent death spiral"
+    starting_code: |
+      spec:
+        containers:
+        - name: web
+          resources:
+            limits:
+              memory: "256Mi"  # FIX THIS
+              cpu: "200m"
+      ---
+      spec:
+        minReplicas: 50
+        maxReplicas: 500  # FIX THIS TOO
+      
+    validation:
+      must_contain:
+        - "512Mi"
+        - "maxReplicas: 200"
+    solution: |
+      spec:
+        containers:
+        - name: web
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+      ---
+      spec:
+        minReplicas: 50
+        maxReplicas: 200
+        metrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              averageUtilization: 70
+        - type: Resource
+          resource:
+            name: memory
+            target:
+              averageUtilization: 80
+    explanation: |
+      Perfect! Fixed multiple issues:
+      
+      1. Memory: 256Mi → 512Mi (actual requirement)
+      2. Max replicas: 500 → 200 (conservative)
+      3. Added memory metric to HPA
+      4. Added health checks
+      
+      Result: Stable scaling instead of death spiral ✓
+
+completion:
+  summary: |
+    # What You Learned
+    
+    ## The Problem
+    K8s auto-scaling can create death spirals when resource limits
+    are too low. New pods crash, keeping CPU high, triggering more
+    scaling, making it exponentially worse.
+    
+    ## The Real Incident
+    Reddit June 2020: Traffic spike triggered auto-scaling, but pods
+    were under-resourced. Within 2 minutes, cluster went from 50
+    healthy pods to 500 crashing pods. Site down for 90 minutes.
+    
+    ## Key Lessons
+    - Load test resource limits
+    - Set conservative max replicas
+    - Monitor multiple metrics (CPU + memory)
+    - Add gradual scaling policies
+    - Have auto-scaling kill switch
+  
+  resources:
+    - title: "Reddit's Post-Mortem"
+      url: "https://www.reddit.com/r/RedditEng/comments/hi3cu1/resolving_the_great_reddit_outage_of_2020/"
+    - title: "K8s HPA Best Practices"
+      url: "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/"
