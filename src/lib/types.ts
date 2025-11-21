@@ -1,26 +1,8 @@
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
-export interface Scenario {
-  id: string;
-  level: DifficultyLevel;
-  title: string;
-  duration: string;
-  teaches: string[];
-  context: string;
-  tabs: Tab[];
-  tasks: Task[];
-  completion: CompletionInfo;
-}
-
-export interface Tab {
-  name: string;
-  type: 'text' | 'logs' | 'code' | 'markdown';
-  content: string | LogEntry[] | CodeContent;
-}
-
 export interface LogEntry {
   time: string;
-  level: 'INFO' | 'WARN' | 'ERROR';
+  level: 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
   message: string;
   id?: string;
   is_answer?: boolean;
@@ -32,7 +14,11 @@ export interface CodeContent {
   editable?: boolean;
 }
 
-export type Task = MultipleChoiceTask | CodeFixTask | FindInLogsTask;
+export interface Tab {
+  name: string;
+  type: 'text' | 'logs' | 'code' | 'markdown';
+  content: string | LogEntry[] | CodeContent;
+}
 
 export interface MultipleChoiceTask {
   type: 'multiple-choice';
@@ -60,12 +46,36 @@ export interface FindInLogsTask {
   explanation: string;
 }
 
+export type Task = MultipleChoiceTask | CodeFixTask | FindInLogsTask;
+
 export interface CompletionInfo {
   summary: string;
   resources?: Array<{
     title: string;
     url: string;
   }>;
+}
+
+export interface RealIncident {
+  company: string;
+  date: string;
+  duration: string;
+  impact: string;
+  cause: string;
+  story: string;
+}
+
+export interface Scenario {
+  id: string;
+  level: DifficultyLevel;
+  title: string;
+  duration: string;
+  teaches: string[];
+  context: string;
+  tabs: Tab[];
+  tasks: Task[];
+  completion: CompletionInfo;
+  real_incident?: RealIncident;
 }
 
 export interface TaskResult {
