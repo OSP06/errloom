@@ -46,9 +46,9 @@ function MultipleChoiceTaskComponent({
   };
 
   return (
-    <div className="bg-white rounded-lg border-2 border-gray-200 p-6">
-      <h3 className="text-lg font-semibold mb-4">📝 Task</h3>
-      <p className="text-gray-700 mb-4">{task.question}</p>
+    <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+      <h3 className="text-lg font-semibold mb-4 text-white">📝 Task</h3>
+      <p className="text-gray-300 mb-4">{task.question}</p>
 
       <div className="space-y-2 mb-4">
         {task.options.map((option, index) => (
@@ -58,11 +58,11 @@ function MultipleChoiceTaskComponent({
             disabled={result?.correct}
             className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
               selectedOption === index
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-orange-500 bg-orange-900/30 text-white'
+                : 'border-gray-700 hover:border-gray-600 text-gray-300'
             } ${result?.correct ? 'opacity-60' : ''}`}
           >
-            <span className="font-medium">{String.fromCharCode(65 + index)}.</span> {option}
+            <span className="font-medium text-orange-400">{String.fromCharCode(65 + index)}.</span> {option}
           </button>
         ))}
       </div>
@@ -71,7 +71,7 @@ function MultipleChoiceTaskComponent({
         <button
           onClick={handleSubmit}
           disabled={selectedOption === null}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors"
         >
           Submit Answer
         </button>
@@ -127,9 +127,9 @@ function CodeFixTaskComponent({
   };
 
   return (
-    <div className="bg-white rounded-lg border-2 border-gray-200 p-6">
-      <h3 className="text-lg font-semibold mb-4">💻 Task</h3>
-      <p className="text-gray-700 mb-4">{task.instructions}</p>
+    <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+      <h3 className="text-lg font-semibold mb-4 text-white">💻 Task</h3>
+      <p className="text-gray-300 mb-4">{task.instructions}</p>
 
       <div className="mb-4">
         <CodeEditor
@@ -145,7 +145,7 @@ function CodeFixTaskComponent({
       {!result?.correct && (
         <button
           onClick={handleSubmit}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
         >
           Check Solution
         </button>
@@ -166,10 +166,10 @@ function FindInLogsTaskComponent({
   result?: TaskResult;
 }) {
   return (
-    <div className="bg-white rounded-lg border-2 border-gray-200 p-6">
-      <h3 className="text-lg font-semibold mb-4">🔍 Task</h3>
-      <p className="text-gray-700 mb-4">{task.instructions}</p>
-      <p className="text-sm text-gray-500">Click on the log entry that answers the question.</p>
+    <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+      <h3 className="text-lg font-semibold mb-4 text-white">🔍 Task</h3>
+      <p className="text-gray-300 mb-4">{task.instructions}</p>
+      <p className="text-sm text-gray-400">Click on the log entry that answers the question.</p>
 
       {result && <TaskResultDisplay result={result} />}
     </div>
@@ -178,29 +178,29 @@ function FindInLogsTaskComponent({
 
 function TaskResultDisplay({ result }: { result: TaskResult }) {
   return (
-    <div className={`mt-4 p-4 rounded-lg border-2 ${
+    <div className={`mt-4 p-4 rounded-lg border ${
       result.correct
-        ? 'bg-green-50 border-green-300'
-        : 'bg-red-50 border-red-300'
+        ? 'bg-green-900/30 border-green-500 text-green-100'
+        : 'bg-red-900/30 border-red-500 text-red-100'
     }`}>
       <div className="flex items-center gap-2 mb-2">
         {result.correct ? (
-          <CheckCircle className="w-5 h-5 text-green-600" />
+          <CheckCircle className="w-5 h-5 text-green-400" />
         ) : (
-          <XCircle className="w-5 h-5 text-red-600" />
+          <XCircle className="w-5 h-5 text-red-400" />
         )}
         <span className="font-semibold">{result.message}</span>
       </div>
 
       {result.hint && (
-        <div className="flex items-start gap-2 mt-2 text-sm text-gray-700">
-          <AlertCircle className="w-4 h-4 mt-0.5 text-blue-600" />
+        <div className="flex items-start gap-2 mt-2 text-sm text-gray-300">
+          <AlertCircle className="w-4 h-4 mt-0.5 text-blue-400" />
           <span>{result.hint}</span>
         </div>
       )}
 
       {result.explanation && (
-        <div className="mt-3 text-sm text-gray-700 whitespace-pre-wrap">
+        <div className="mt-3 text-sm text-gray-300 whitespace-pre-wrap">
           {result.explanation}
         </div>
       )}

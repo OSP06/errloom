@@ -14,7 +14,7 @@ export function CodeEditor({ code, onChange }: CodeEditorProps) {
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border border-gray-700 rounded-xl overflow-hidden bg-gray-900">
       <Editor
         height="400px"
         language={code.language}
@@ -28,7 +28,7 @@ export function CodeEditor({ code, onChange }: CodeEditorProps) {
           scrollBeyondLastLine: false,
           automaticLayout: true,
         }}
-        theme="vs-light"
+        theme="vs-dark"
       />
     </div>
   );
