@@ -83,7 +83,7 @@ OutageLab is an interactive learning platform that teaches developers how to deb
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/outagelab.git
+git clone https://github.com/OSP06/outagelab.git
 cd outagelab
 
 # Install dependencies
@@ -273,8 +273,7 @@ If you find this project helpful, please consider:
 For questions, suggestions, or feedback:
 
 - Open an issue on GitHub
-- Email: [your-email@example.com]
-- Twitter: [@yourusername]
+- Email:ompateldev06@gmail.com
 
 ---
 
