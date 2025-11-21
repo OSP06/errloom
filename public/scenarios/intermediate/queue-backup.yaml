@@ -1,0 +1,217 @@
+id: "queue-backup"
+level: "intermediate"
+title: "The Message Queue Backup"
+duration: "24 minutes"
+teaches:
+  - "Message Queues"
+  - "Async Processing"
+  - "Backpressure"
+
+context: |
+  Your app sends welcome emails using a message queue (RabbitMQ).
+  
+  Flow: User signs up → Job added to queue → Worker sends email
+  
+  Normally this takes 2 seconds per email. You have 10 workers.
+  Processing capacity: 300 emails/minute.
+  
+  Today you launched a viral marketing campaign. 10,000 signups in 10 minutes!
+  
+  The queue now has 8,000 unprocessed jobs. Users are waiting hours for
+  welcome emails. Some are complaining. Your boss is asking why.
+  
+  Your job: Figure out why the queue is backing up and fix it.
+
+tabs:
+  - name: "Metrics"
+    type: "text"
+    content: |
+      Message Queue Stats:
+      
+      Queue: welcome_emails
+      Messages Enqueued: 10,000
+      Messages Processed: 2,000
+      Messages Pending: 8,000 (growing!)
+      
+      Workers: 10 workers
+      Processing Rate: 300 emails/min (5/sec)
+      Incoming Rate: 1,000 signups/min (16/sec)
+      
+      ⚠️ Consuming: 5/sec
+      ⚠️ Producing: 16/sec
+      ⚠️ Gap: -11/sec (falling behind!)
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "10:00:00"
+        level: "INFO"
+        message: "Marketing campaign started"
+      - time: "10:01:00"
+        level: "INFO"
+        message: "Signups: 1,000 in last minute"
+      - time: "10:01:30"
+        level: "WARN"
+        message: "Queue depth: 500 messages (growing)"
+      - time: "10:05:00"
+        level: "ERROR"
+        message: "Queue depth: 3,000 messages - workers can't keep up"
+        is_answer: true
+      - time: "10:08:00"
+        level: "ERROR"
+        message: "Queue depth: 6,000 messages - 20 minute delay"
+        is_answer: true
+      - time: "10:10:00"
+        level: "FATAL"
+        message: "Queue depth: 8,000 messages - system overwhelmed"
+
+  - name: "Code"
+    type: "code"
+    content:
+      language: "javascript"
+      content: |
+        // worker.js - Email sending worker
+        const queue = require('./queue');
+        
+        // 10 workers running this code
+        queue.process('welcome_emails', async (job) => {
+          const { userId, email } = job.data;
+          
+          // Send welcome email (takes ~2 seconds)
+          await sendEmail({
+            to: email,
+            subject: 'Welcome!',
+            body: await renderTemplate('welcome', { userId })
+          });
+          
+          console.log(`Email sent to ${email}`);
+        });
+        
+        // Processing rate: 10 workers × 30 emails/min = 300/min
+        // Incoming rate: 1,000 signups/min
+        // Problem: Can't keep up!
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # Message Queue Backpressure
+      
+      **What is backpressure?**
+      When producers create work faster than consumers can process it.
+      
+      **The Math:**
+      ```
+      Incoming: 1,000 jobs/min
+      Processing: 300 jobs/min
+      Deficit: -700 jobs/min
+      
+      After 10 minutes:
+      Queue depth = 700 × 10 = 7,000 jobs
+      ```
+      
+      **Solutions:**
+      
+      1. Scale Workers: 40 workers × 30/min = 1,200/min
+      2. Optimize Processing: Batch emails
+      3. Rate Limiting: Slow down producers
+      4. Auto-scaling: Add workers when queue grows
+
+tasks:
+  - type: "multiple-choice"
+    question: "Why is the queue backing up?"
+    options:
+      - "The workers are crashing"
+      - "The queue is full"
+      - "Jobs are being added faster (1000/min) than workers can process them (300/min)"
+      - "The email server is down"
+    correct: 2
+    explanation: |
+      Exactly! This is a classic backpressure problem.
+      
+      The math:
+      - Incoming rate: 1,000 signups/min
+      - Processing rate: 10 workers × 30 emails/min = 300/min
+      - Deficit: 1,000 - 300 = 700 jobs/min piling up
+      
+      After 10 minutes:
+      - Queue: 7,000 unprocessed jobs
+      - Wait time: 7,000 ÷ 300 = 23 minutes
+
+  - type: "code-fix"
+    instructions: "Add auto-scaling logic to spin up more workers when queue depth is high"
+    starting_code: |
+      // monitor.js - Queue monitoring
+      const queue = require('./queue');
+      
+      setInterval(async () => {
+        const queueDepth = await queue.count('welcome_emails');
+        const workers = getCurrentWorkerCount();
+        
+        console.log(`Queue: ${queueDepth} jobs, Workers: ${workers}`);
+        
+        // Add auto-scaling logic here:
+        
+        
+      }, 10000);
+      
+    validation:
+      must_contain:
+        - "queueDepth"
+        - "scaleUp"
+        - ">"
+    solution: |
+      // monitor.js - Queue monitoring with auto-scaling
+      const queue = require('./queue');
+      const scaler = require('./worker-scaler');
+      
+      setInterval(async () => {
+        const queueDepth = await queue.count('welcome_emails');
+        const workers = getCurrentWorkerCount();
+        
+        console.log(`Queue: ${queueDepth} jobs, Workers: ${workers}`);
+        
+        // Auto-scaling logic
+        if (queueDepth > 1000 && workers < 50) {
+          const workersToAdd = Math.min(10, 50 - workers);
+          console.log(`Scaling UP: Adding ${workersToAdd} workers`);
+          await scaler.scaleUp(workersToAdd);
+        } else if (queueDepth < 100 && workers > 10) {
+          const workersToRemove = Math.min(10, workers - 10);
+          console.log(`Scaling DOWN: Removing ${workersToRemove} workers`);
+          await scaler.scaleDown(workersToRemove);
+        }
+      }, 10000);
+    explanation: |
+      Perfect! Now your system adapts to load automatically.
+      
+      Results:
+      - During viral campaign: 50 workers = 1,500 emails/min ✓
+      - Normal traffic: 10 workers = 300 emails/min ✓
+      - Queue stays small: < 100 jobs
+
+completion:
+  summary: |
+    # What You Learned
+    
+    ## The Problem
+    Message queues back up when producers create work faster than
+    consumers can process it. Without auto-scaling or rate limiting,
+    delays grow indefinitely.
+    
+    ## The Fix
+    1. Monitor queue depth continuously
+    2. Auto-scale workers based on queue depth
+    3. Set max queue depth limits
+    4. Implement backpressure (slow down producers if needed)
+    
+    ## Queue Best Practices
+    - **Monitoring**: Alert when queue depth > threshold
+    - **Auto-scaling**: Add workers dynamically
+    - **Dead letter queues**: Handle permanent failures
+    - **Idempotency**: Allow retries safely
+
+  resources:
+    - title: "Queue Theory Basics"
+      url: "https://aws.amazon.com/message-queue/benefits/"
+    - title: "RabbitMQ Backpressure"
+      url: "https://www.rabbitmq.com/memory.html"

@@ -1,0 +1,249 @@
+id: "db-pool-exhausted"
+level: "intermediate"
+title: "Database Connection Pool Exhausted"
+duration: "25 minutes"
+teaches:
+  - "Connection Pooling"
+  - "Resource Management"
+  - "Database Scaling"
+
+context: |
+  Your e-commerce site had a great Black Friday! Traffic spiked 10x.
+
+  Everything was working fine until 2pm when the site went down completely.
+  All requests are timing out. The database server shows 0% CPU usage.
+
+  Error: "Error: TimeoutError: ResourceRequest timed out"
+
+  The weird part? The database is completely healthy and has plenty of
+  capacity. So why can't the app connect to it?
+
+  Your job: Find out what's blocking database connections.
+
+tabs:
+  - name: "Error"
+    type: "text"
+    content: |
+      Application Error Log:
+
+      TimeoutError: ResourceRequest timed out
+        at Pool.acquire (pool.js:88)
+        at Database.query (db.js:45)
+
+      Error: Unable to acquire connection from pool within 30s
+
+      Active Requests: 1,247 (all waiting for DB)
+      Response Time: 30,000ms+ (timeout)
+
+  - name: "Metrics"
+    type: "text"
+    content: |
+      Database Server Metrics:
+      CPU: 12% (very low!)
+      Memory: 45%
+      Disk I/O: Normal
+      Active Queries: 10 (max capacity: 1000)
+
+      Application Server Metrics:
+      CPU: 85% (high, waiting)
+      Memory: 72%
+      Active Connections to DB: 10/10 (MAXED OUT!)
+      Waiting for Connection: 1,247 requests
+
+      ⚠️ Connection pool is at maximum capacity!
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "13:45:00"
+        level: "INFO"
+        message: "Traffic spike detected - 10x normal load"
+      - time: "14:00:00"
+        level: "WARN"
+        message: "Connection pool usage at 80% (8/10 connections)"
+      - time: "14:05:00"
+        level: "ERROR"
+        message: "Connection pool exhausted - all 10 connections in use"
+        is_answer: true
+      - time: "14:05:01"
+        level: "ERROR"
+        message: "1,247 requests waiting for database connection"
+        is_answer: true
+      - time: "14:05:30"
+        level: "ERROR"
+        message: "Request timeout after 30s waiting for connection"
+      - time: "14:06:00"
+        level: "FATAL"
+        message: "Application unresponsive - all workers blocked on DB pool"
+
+  - name: "Config"
+    type: "code"
+    content:
+      language: "javascript"
+      content: |
+        // database.js
+        const { Pool } = require('pg');
+
+        const pool = new Pool({
+          host: 'db.example.com',
+          database: 'production',
+          user: 'app',
+          password: process.env.DB_PASSWORD,
+
+          // Connection pool settings
+          max: 10,              // Maximum connections
+          min: 2,               // Minimum idle connections
+          idleTimeoutMillis: 30000,
+          connectionTimeoutMillis: 30000
+        });
+
+        // Hmm, 10 connections for 1000+ concurrent users?
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # Database Connection Pools
+
+      **What is a connection pool?**
+      A cache of reusable database connections. Creating new connections
+      is expensive (100-200ms each), so we reuse them.
+
+      **The Problem:**
+      ```
+      10 connections in pool
+      1,000 concurrent users
+      Each request needs a connection
+      → Only 10 requests can run at once!
+      → Other 990 requests wait in queue
+      → Timeouts and cascading failures
+      ```
+
+      **Common Causes:**
+      1. Pool too small for traffic
+      2. Slow queries holding connections too long
+      3. Connections not released (leaks)
+      4. Connection limits on database server
+
+      **Sizing Formula:**
+      ```
+      connections = ((core_count * 2) + effective_spindle_count)
+
+      For web apps:
+      - Start with: connections per server = 10-20
+      - Total = (connections per server) × (number of servers)
+      - Monitor and adjust based on wait times
+      ```
+
+      **Quick Fixes:**
+      1. Increase pool size (temporary)
+      2. Add read replicas (scale reads)
+      3. Implement connection queueing
+      4. Optimize slow queries
+      5. Add caching layer
+
+tasks:
+  - type: "multiple-choice"
+    question: "Why are requests timing out when the database has plenty of capacity?"
+    options:
+      - "The database server is overwhelmed"
+      - "The connection pool is too small - only 10 connections for 1000+ users"
+      - "There's a network issue between app and database"
+      - "The queries are too slow"
+    correct: 1
+    explanation: |
+      Exactly! This is connection pool exhaustion.
+
+      What's happening:
+      1. Pool has max 10 connections
+      2. Black Friday brings 1,000+ concurrent users
+      3. Each request needs a DB connection
+      4. Only 10 can run at once
+      5. Other 990+ wait in queue
+      6. After 30s of waiting → timeout
+
+      The database is idle because it's only serving 10 connections!
+      It COULD handle 100x more, but the pool is the bottleneck.
+
+  - type: "code-fix"
+    instructions: "Increase the connection pool size appropriately for high traffic"
+    starting_code: |
+      const pool = new Pool({
+        host: 'db.example.com',
+        database: 'production',
+        user: 'app',
+        password: process.env.DB_PASSWORD,
+
+        // Fix these settings for high traffic:
+        max: 10,
+        min: 2,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 30000
+      });
+
+    validation:
+      must_contain:
+        - "max:"
+        - "50"
+    solution: |
+      const pool = new Pool({
+        host: 'db.example.com',
+        database: 'production',
+        user: 'app',
+        password: process.env.DB_PASSWORD,
+
+        // Increased for high traffic
+        max: 50,              // Up from 10
+        min: 10,              // Keep more idle connections ready
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000,
+        max_lifetime: 60 * 60 * 1000
+      });
+    explanation: |
+      Perfect! Now you can handle 5x more concurrent requests.
+
+      The fix:
+      - max: 10 → 50 (more concurrent queries)
+      - min: 2 → 10 (always have connections ready)
+
+      Results:
+      - Before: 10 requests/sec max, 99% waiting
+      - After: 50+ requests/sec, <1% waiting
+
+      Important notes:
+      - Don't set max too high (100+) - diminishing returns
+      - Monitor your database's connection limit
+      - Each app server needs its own pool
+      - Consider read replicas for read-heavy workloads
+
+completion:
+  summary: |
+    # What You Learned
+
+    ## The Problem
+    Connection pools are a shared resource. Too small = requests
+    queue up and timeout. The database sits idle while your app
+    is stuck waiting for connections.
+
+    ## The Fix
+    1. Right-size your connection pool for expected traffic
+    2. Monitor pool utilization in production
+    3. Scale horizontally (more servers with smaller pools)
+    4. Use read replicas for read-heavy workloads
+
+    ## Production Best Practices
+    - Formula: `(num_servers × pool_size) < db_max_connections`
+    - Start conservative: 10-20 per server
+    - Monitor: pool wait time, utilization %
+    - Alert when pool >80% utilized
+    - Load test before Black Friday!
+
+    ## Real-World Impact
+    - Shopify: Optimized pools, handled 10x traffic spike
+    - Stripe: Dynamic pool sizing saved millions in DB costs
+    - This is one of the most common production issues
+
+  resources:
+    - title: "HikariCP: Pool Sizing Guide"
+      url: "https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing"
+    - title: "PostgreSQL Connection Pooling"
+      url: "https://www.postgresql.org/docs/current/runtime-config-connection.html"

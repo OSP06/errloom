@@ -52,13 +52,49 @@ const scenarios = {
   ],
   intermediate: [
     {
-      id: 'db-connection-pool',
-      title: 'Database Connection Pool Exhaustion',
-      duration: '30 min',
-      teaches: ['Database', 'Connection Pools', 'Monitoring'],
-      description: 'Your app stops responding under load. The database is fine, so what gives?',
+      id: 'db-pool-exhausted',
+      title: 'Database Connection Pool Exhausted',
+      duration: '25 min',
+      teaches: ['Connection Pooling', 'Resource Management', 'Database Scaling'],
+      description: 'Black Friday traffic spike! Your database is idle but all requests timeout. Why?',
       completed: false,
-      locked: true
+      locked: false
+    },
+    {
+      id: 'cache-stampede',
+      title: 'The Cache Stampede',
+      duration: '28 min',
+      teaches: ['Caching', 'Cache Invalidation', 'Race Conditions'],
+      description: 'You cleared the cache. Now 10,000 users are hammering your database simultaneously.',
+      completed: false,
+      locked: false
+    },
+    {
+      id: 'failed-deployment',
+      title: 'The Failed Deployment',
+      duration: '22 min',
+      teaches: ['Deployments', 'Rollback', 'Database Migrations'],
+      description: 'Rolling back the code made things WORSE. The database still has the new schema!',
+      completed: false,
+      locked: false
+    },
+    {
+      id: 'queue-backup',
+      title: 'The Message Queue Backup',
+      duration: '24 min',
+      teaches: ['Message Queues', 'Async Processing', 'Backpressure'],
+      description: '8,000 welcome emails stuck in queue. Users are waiting hours. Scale up!',
+      completed: false,
+      locked: false
+    },
+    {
+      id: 'rate-limit-cascade',
+      title: 'The Rate Limit Cascade',
+      duration: '23 min',
+      teaches: ['Rate Limiting', 'API Dependencies', 'Circuit Breakers'],
+      description: 'Stripe is rate limiting you. User retries make it 8x worse. Stop the cascade!',
+      completed: false,
+      locked: false
     }
   ],
   advanced: [

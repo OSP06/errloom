@@ -1,0 +1,245 @@
+id: "rate-limit-cascade"
+level: "intermediate"
+title: "The Rate Limit Cascade"
+duration: "23 minutes"
+teaches:
+  - "Rate Limiting"
+  - "API Dependencies"
+  - "Circuit Breakers"
+
+context: |
+  Your app uses Stripe for payments. Life is good!
+  
+  Today you launched a flash sale. 5,000 customers tried to check out
+  in the first minute.
+  
+  Suddenly all checkouts are failing with:
+  "Payment processing error - please try again"
+  
+  You check Stripe's status page - everything is green. Their API is fine.
+  
+  But your logs show: "429 Too Many Requests" from Stripe.
+  
+  You're hitting Stripe's rate limit! But here's the weird part:
+  customers keep retrying, which makes it WORSE.
+  
+  Your job: Figure out how to handle rate limits gracefully.
+
+tabs:
+  - name: "Error"
+    type: "text"
+    content: |
+      Stripe API Response:
+      
+      HTTP 429 Too Many Requests
+      
+      {
+        "error": {
+          "message": "Rate limit exceeded. Try again in 60 seconds.",
+          "type": "rate_limit_error"
+        }
+      }
+      
+      Your rate limit: 100 requests/second
+      Your current rate: 850 requests/second (8.5x over!)
+
+  - name: "Metrics"
+    type: "text"
+    content: |
+      Stripe API Calls:
+      
+      10:00:00 - 50 req/sec   ✓ Under limit
+      10:05:00 - 120 req/sec  ✗ Over limit
+      10:05:01 - 200 req/sec  ✗ Users retrying
+      10:05:02 - 400 req/sec  ✗ More retries!
+      10:05:03 - 850 req/sec  ✗ Cascade!
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "10:00:00"
+        level: "INFO"
+        message: "Flash sale started"
+      - time: "10:05:00"
+        level: "WARN"
+        message: "Stripe API: 429 Rate Limit Exceeded"
+        is_answer: true
+      - time: "10:05:01"
+        level: "ERROR"
+        message: "Request rate: 200/sec (2x rate limit)"
+      - time: "10:05:02"
+        level: "ERROR"
+        message: "Request rate: 400/sec (4x rate limit) - retries making it worse!"
+        is_answer: true
+      - time: "10:05:03"
+        level: "FATAL"
+        message: "Request rate: 850/sec (8.5x rate limit) - cascade failure"
+
+  - name: "Code"
+    type: "code"
+    content:
+      language: "javascript"
+      content: |
+        // checkout.js
+        async function processPayment(req, res) {
+          const { amount, cardToken } = req.body;
+          
+          try {
+            // Call Stripe API
+            const charge = await stripe.charges.create({
+              amount,
+              currency: 'usd',
+              source: cardToken
+            });
+            
+            res.json({ success: true, chargeId: charge.id });
+          } catch (error) {
+            // Just return error - user will retry
+            // This makes the problem WORSE!
+            res.status(500).json({ 
+              error: 'Payment failed - please try again' 
+            });
+          }
+        }
+        
+        // Problem: No rate limit handling
+        // No backoff, No queueing
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # Rate Limiting & Circuit Breakers
+      
+      **Solutions:**
+      
+      **1. Client-Side Rate Limiting**
+      ```javascript
+      const queue = new PQueue({ 
+        concurrency: 90,
+        interval: 1000,
+        intervalCap: 90
+      });
+      
+      await queue.add(() => stripe.charges.create(...));
+      ```
+      
+      **2. Exponential Backoff**
+      Retry with increasing delays: 1s, 2s, 4s, 8s, 16s
+
+tasks:
+  - type: "multiple-choice"
+    question: "Why did the rate limit problem get worse instead of better?"
+    options:
+      - "Stripe's API is down"
+      - "Your server is too slow"
+      - "Users retrying failed payments created a cascade - more retries = more rate limit errors"
+      - "You need to upgrade your Stripe account"
+    correct: 2
+    explanation: |
+      Correct! This is a rate limit cascade.
+      
+      The cascade:
+      1. Flash sale → 120 req/sec (over 100/sec limit)
+      2. Stripe returns 429 rate limit errors
+      3. Your app tells users "Please try again"
+      4. Users click retry immediately
+      5. Now 200 req/sec (even worse!)
+      6. More errors, more retries
+      7. 850 req/sec (8.5x over limit!)
+
+  - type: "code-fix"
+    instructions: "Implement rate limiting and queueing to prevent cascades"
+    starting_code: |
+      async function processPayment(req, res) {
+        const { amount, cardToken } = req.body;
+        
+        try {
+          // Add rate limiting logic here:
+          
+          
+          const charge = await stripe.charges.create({
+            amount,
+            currency: 'usd',
+            source: cardToken
+          });
+          
+          res.json({ success: true, chargeId: charge.id });
+        } catch (error) {
+          res.status(500).json({ 
+            error: 'Payment failed - please try again' 
+          });
+        }
+      }
+      
+    validation:
+      must_contain:
+        - "queue"
+        - "concurrency"
+        - "rate"
+    solution: |
+      const PQueue = require('p-queue');
+      
+      // Rate-limited queue: max 90 req/sec
+      const stripeQueue = new PQueue({
+        concurrency: 90,
+        interval: 1000,
+        intervalCap: 90
+      });
+      
+      async function processPayment(req, res) {
+        const { amount, cardToken } = req.body;
+        
+        try {
+          const charge = await stripeQueue.add(async () => {
+            return await stripe.charges.create({
+              amount,
+              currency: 'usd',
+              source: cardToken
+            });
+          });
+          
+          res.json({ success: true, chargeId: charge.id });
+        } catch (error) {
+          if (error.type === 'rate_limit_error') {
+            res.status(429).json({ 
+              error: 'High traffic - your payment is queued',
+              retryAfter: 60 
+            });
+          } else {
+            res.status(500).json({ error: error.message });
+          }
+        }
+      }
+    explanation: |
+      Excellent! Now you gracefully handle high traffic.
+      
+      Results:
+      - Before: 850 req/sec → all fail
+      - After: 90 req/sec succeed, rest wait in queue
+      - No cascade - users don't retry
+
+completion:
+  summary: |
+    # What You Learned
+    
+    ## The Problem
+    Rate limits are necessary to protect APIs. Without proper handling,
+    user retries create cascading failures that make the problem
+    exponentially worse.
+    
+    ## The Fix
+    1. Queue requests locally to stay under rate limits
+    2. Implement exponential backoff for retries
+    3. Use circuit breakers to stop trying if system is down
+    4. Give users clear feedback ("queued" not "failed")
+    
+    ## Real-World Examples
+    - AWS: Exponential backoff is required for all SDKs
+    - Netflix: Hystrix circuit breaker saved them millions
+    - Stripe: Provides Retry-After headers for rate limits
+
+  resources:
+    - title: "Stripe Rate Limiting"
+      url: "https://stripe.com/docs/rate-limits"
+    - title: "Circuit Breaker Pattern"
+      url: "https://martinfowler.com/bliki/CircuitBreaker.html"

@@ -44,11 +44,27 @@ OutageLab is an interactive learning platform that teaches developers how to deb
    - Learn: Environment Variables, Configuration, Deployment
    - Fix production crashes caused by missing configuration
 
-### Intermediate Level (Coming Soon)
-- Database Connection Pool Exhaustion
-- Cache Invalidation Issues
-- Queue Management Problems
-- Deployment Rollback Scenarios
+### Intermediate Level (5 scenarios, ~122 minutes)
+
+1. **Database Connection Pool Exhausted** (25 min)
+   - Learn: Connection Pooling, Resource Management, Database Scaling
+   - Black Friday traffic spike! Your database is idle but all requests timeout
+
+2. **The Cache Stampede** (28 min)
+   - Learn: Caching Strategies, Cache Invalidation, Race Conditions
+   - You cleared the cache. Now 10,000 users are hammering your database
+
+3. **The Failed Deployment** (22 min)
+   - Learn: Deployment Strategies, Rollback Procedures, Database Migrations
+   - Rolling back the code made things WORSE. The database still has the new schema
+
+4. **The Message Queue Backup** (24 min)
+   - Learn: Message Queues, Async Processing, Backpressure
+   - 8,000 welcome emails stuck in queue. Users are waiting hours
+
+5. **The Rate Limit Cascade** (23 min)
+   - Learn: Rate Limiting, API Dependencies, Circuit Breakers
+   - Stripe is rate limiting you. User retries make it 8x worse
 
 ### Advanced Level (Coming Soon)
 - Reddit Kubernetes Outage
@@ -101,7 +117,12 @@ outagelab/
 │       │   ├── memory-leak.yaml
 │       │   ├── cors-error.yaml
 │       │   └── env-variable.yaml
-│       ├── intermediate/   # Coming soon
+│       ├── intermediate/
+│       │   ├── db-pool-exhausted.yaml
+│       │   ├── cache-stampede.yaml
+│       │   ├── failed-deployment.yaml
+│       │   ├── queue-backup.yaml
+│       │   └── rate-limit-cascade.yaml
 │       └── advanced/       # Coming soon
 ├── src/
 │   ├── components/         # React components

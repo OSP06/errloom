@@ -1,0 +1,303 @@
+id: "cache-stampede"
+level: "intermediate"
+title: "The Cache Stampede"
+duration: "28 minutes"
+teaches:
+  - "Caching Strategies"
+  - "Cache Invalidation"
+  - "Race Conditions"
+
+context: |
+  Your homepage is heavily cached with Redis. Page load time: 50ms.
+  Life is good!
+
+  Every night at midnight, you clear the cache to ensure fresh data.
+
+  Tonight at 12:00:01am, your database crashed. CPU went to 100%.
+  Thousands of queries hit the database simultaneously.
+
+  The database couldn't handle it and went down, taking your site with it.
+
+  What just happened? Why did clearing the cache kill your database?
+
+  Your job: Figure out why cache invalidation caused a stampede.
+
+tabs:
+  - name: "Timeline"
+    type: "text"
+    content: |
+      23:59:59 - Cache cleared (scheduled job)
+      00:00:00 - Cache miss rate: 0% → 100%
+      00:00:01 - Database queries spike: 50/sec → 10,000/sec
+      00:00:02 - Database CPU: 15% → 100%
+      00:00:05 - Database connections maxed out (500/500)
+      00:00:08 - Database starts timing out
+      00:00:15 - Site completely down
+
+      All users trying to load homepage at same time!
+
+  - name: "Metrics"
+    type: "text"
+    content: |
+      Redis Cache Metrics:
+      23:59:59 - Hit Rate: 99.8%
+      00:00:00 - Hit Rate: 0% (cache cleared!)
+      00:00:01 - Misses: 10,000/sec
+
+      Database Metrics:
+      Normal Load:
+      - Queries: 50/sec
+      - CPU: 15%
+      - Response Time: 5ms
+
+      After Cache Clear (00:00:01):
+      - Queries: 10,000/sec (200x increase!)
+      - CPU: 100%
+      - Response Time: 5,000ms (timeout)
+
+      ⚠️ All 10,000 concurrent users hit DB at once!
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "23:59:59"
+        level: "INFO"
+        message: "Scheduled cache clear executed - all keys deleted"
+      - time: "00:00:00"
+        level: "WARN"
+        message: "Cache miss on homepage - regenerating from DB"
+      - time: "00:00:01"
+        level: "ERROR"
+        message: "10,000 simultaneous cache misses - stampede detected!"
+        is_answer: true
+      - time: "00:00:02"
+        level: "ERROR"
+        message: "Database query queue: 9,847 requests pending"
+        is_answer: true
+      - time: "00:00:05"
+        level: "FATAL"
+        message: "Database connection pool exhausted"
+      - time: "00:00:08"
+        level: "FATAL"
+        message: "Database not responding - circuit breaker opened"
+
+  - name: "Code"
+    type: "code"
+    content:
+      language: "javascript"
+      content: |
+        // homepage.js
+        async function getHomepage(req, res) {
+          const cacheKey = 'homepage:data';
+
+          // Try cache first
+          let data = await redis.get(cacheKey);
+
+          if (!data) {
+            // Cache miss - fetch from database
+            console.log('Cache miss - querying database');
+
+            data = await db.query(`
+              SELECT posts.*, users.name, COUNT(comments.id)
+              FROM posts
+              JOIN users ON posts.user_id = users.id
+              LEFT JOIN comments ON posts.id = comments.post_id
+              GROUP BY posts.id
+              ORDER BY posts.created_at DESC
+              LIMIT 100
+            `);
+
+            // Store in cache for 1 hour
+            await redis.set(cacheKey, JSON.stringify(data), 'EX', 3600);
+          }
+
+          return res.json(data);
+        }
+
+        // What happens when 10,000 users hit this at once
+        // after cache is cleared?
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # Cache Stampede (Thundering Herd)
+
+      **What is it?**
+      When a cached item expires, thousands of requests try to
+      regenerate it simultaneously, overwhelming the database.
+
+      **The Problem:**
+      ```
+      1. Cache cleared at midnight
+      2. 10,000 users request homepage
+      3. All see cache miss
+      4. All query database simultaneously
+      5. Database can't handle 10,000 queries
+      6. Site goes down
+      ```
+
+      **Solutions:**
+
+      **1. Locking (Only one regenerates)**
+      ```javascript
+      const lock = await redis.set('lock:homepage', '1', 'NX', 'EX', 30);
+      if (lock) {
+        // I got the lock - regenerate cache
+        data = await db.query(...);
+        await redis.set(cacheKey, data);
+      } else {
+        // Someone else is regenerating - wait
+        await sleep(100);
+        data = await redis.get(cacheKey);
+      }
+      ```
+
+      **2. Cache Warming**
+      Pre-populate cache before clearing
+
+      **3. Stale-While-Revalidate**
+      Serve old data while regenerating in background
+
+tasks:
+  - type: "multiple-choice"
+    question: "What caused the database to crash after clearing the cache?"
+    options:
+      - "The cache server was too slow"
+      - "10,000 users simultaneously tried to regenerate the same cached data"
+      - "The database ran out of disk space"
+      - "There was a bug in the query"
+    correct: 1
+    explanation: |
+      Correct! This is a classic cache stampede (thundering herd).
+
+      What happened:
+      1. Cache cleared at midnight
+      2. First user requests homepage → cache miss
+      3. While that query runs, 9,999 more users arrive
+      4. They ALL see cache miss (first query hasn't completed)
+      5. All 10,000 queries hit database simultaneously
+      6. Database can't handle 10,000 queries at once
+      7. Database crashes, site goes down
+
+      Normally with cache:
+      - First user: cache miss, query DB, store result (50ms)
+      - Next 9,999 users: cache hit (1ms)
+
+      After clearing cache:
+      - All 10,000 users: cache miss, query DB (simultaneous!)
+
+  - type: "code-fix"
+    instructions: "Implement cache locking to prevent stampedes"
+    starting_code: |
+      async function getHomepage(req, res) {
+        const cacheKey = 'homepage:data';
+
+        let data = await redis.get(cacheKey);
+
+        if (!data) {
+          // Add locking mechanism here to prevent stampede
+
+
+          data = await db.query(`
+            SELECT posts.*, users.name, COUNT(comments.id)
+            FROM posts
+            JOIN users ON posts.user_id = users.id
+            LEFT JOIN comments ON posts.id = comments.post_id
+            GROUP BY posts.id
+            ORDER BY posts.created_at DESC
+            LIMIT 100
+          `);
+
+          await redis.set(cacheKey, JSON.stringify(data), 'EX', 3600);
+        }
+
+        return res.json(data);
+      }
+
+    validation:
+      must_contain:
+        - "lock"
+        - "NX"
+        - "sleep"
+    solution: |
+      async function getHomepage(req, res) {
+        const cacheKey = 'homepage:data';
+        const lockKey = 'lock:homepage';
+
+        let data = await redis.get(cacheKey);
+
+        if (!data) {
+          // Try to acquire lock (only one process regenerates)
+          const lock = await redis.set(lockKey, '1', 'NX', 'EX', 30);
+
+          if (lock) {
+            // I got the lock - regenerate cache
+            console.log('Lock acquired - regenerating cache');
+
+            data = await db.query(`
+              SELECT posts.*, users.name, COUNT(comments.id)
+              FROM posts
+              JOIN users ON posts.user_id = users.id
+              LEFT JOIN comments ON posts.id = comments.post_id
+              GROUP BY posts.id
+              ORDER BY posts.created_at DESC
+              LIMIT 100
+            `);
+
+            await redis.set(cacheKey, JSON.stringify(data), 'EX', 3600);
+            await redis.del(lockKey);
+          } else {
+            // Someone else is regenerating - wait and retry
+            console.log('Lock held by another process - waiting');
+            await sleep(100);
+            data = await redis.get(cacheKey);
+          }
+        }
+
+        return res.json(data);
+      }
+    explanation: |
+      Excellent! Now only ONE request regenerates the cache at a time.
+
+      How it works:
+      1. All 10,000 requests see cache miss
+      2. All try to acquire lock
+      3. Only ONE gets the lock (NX = set if Not eXists)
+      4. That one queries database and updates cache
+      5. Other 9,999 wait and then read from cache
+
+      Results:
+      - Before: 10,000 DB queries
+      - After: 1 DB query
+      - Database: Calm and happy ✓
+
+completion:
+  summary: |
+    # What You Learned
+
+    ## The Problem
+    Cache stampedes happen when many requests try to regenerate
+    the same expired cache key simultaneously, overwhelming your
+    database with duplicate work.
+
+    ## The Fix
+    Use distributed locking so only one request regenerates
+    the cache while others wait for the result.
+
+    ## Prevention Strategies
+    1. **Locking** - Only one regenerates (what you implemented)
+    2. **Cache warming** - Preload before clearing
+    3. **Stale-while-revalidate** - Serve old data while updating
+    4. **Gradual expiration** - Don't clear everything at once
+    5. **Early expiration** - Refresh before expiration
+
+    ## Real-World Examples
+    - Reddit: Stampede took down site during cache flush
+    - Twitter: Implemented probabilistic early expiration
+    - Facebook: Uses multi-level cache with stampede protection
+
+  resources:
+    - title: "Preventing Cache Stampedes"
+      url: "https://instagram-engineering.com/thundering-herds-promises-82191c8af57d"
+    - title: "Redis Distributed Locks"
+      url: "https://redis.io/topics/distlock"

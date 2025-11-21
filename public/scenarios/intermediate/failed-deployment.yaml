@@ -1,0 +1,198 @@
+id: "failed-deployment"
+level: "intermediate"
+title: "The Failed Deployment"
+duration: "22 minutes"
+teaches:
+  - "Deployment Strategies"
+  - "Rollback Procedures"
+  - "Database Migrations"
+
+context: |
+  You just deployed v2.0 of your app! It includes a database migration
+  to add a new 'premium' column to the users table.
+  
+  The deployment completed successfully. But 5 minutes later, users
+  start reporting errors. Payments are failing. Panic sets in.
+  
+  Your tech lead says: "Roll back immediately!"
+  
+  You run the rollback command. The OLD code is now running.
+  But the errors CONTINUE. In fact, they're worse now!
+  
+  Your job: Figure out why rolling back the code didn't fix it.
+
+tabs:
+  - name: "Error"
+    type: "text"
+    content: |
+      Production Errors (after rollback):
+      
+      Error: column "premium" does not exist
+        at Database.query (db.js:23)
+        at User.find (user.js:45)
+      
+      The old code is running, but it's failing because
+      it's looking for a column that... wait, the column
+      DOES exist now. So why is it saying it doesn't?
+      
+      Oh no. The old code expects the OLD schema!
+
+  - name: "Timeline"
+    type: "text"
+    content: |
+      14:00:00 - Deploy v2.0 started
+      14:02:00 - Database migration running
+      14:02:15 - Migration complete: added 'premium' column
+      14:03:00 - New code deployed (uses 'premium' column)
+      14:05:00 - Errors start appearing
+      14:07:00 - Decision: ROLLBACK!
+      14:08:00 - Rollback started
+      14:09:00 - Old code deployed (v1.0)
+      14:09:30 - MORE errors now! Old code doesn't know about 'premium'
+      14:10:00 - Database still has NEW schema
+      14:10:01 - Schema/code mismatch!
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "14:02:15"
+        level: "INFO"
+        message: "Migration SUCCESS: ALTER TABLE users ADD COLUMN premium BOOLEAN"
+      - time: "14:03:00"
+        level: "INFO"
+        message: "v2.0 deployed - code expects 'premium' column"
+      - time: "14:05:00"
+        level: "ERROR"
+        message: "Payment processing failing - investigating"
+      - time: "14:09:00"
+        level: "INFO"
+        message: "Rollback complete - v1.0 code now running"
+      - time: "14:09:30"
+        level: "ERROR"
+        message: "QueryError: column 'premium' does not exist in old code queries"
+        is_answer: true
+      - time: "14:10:00"
+        level: "FATAL"
+        message: "Code expects old schema but DB has new schema!"
+        is_answer: true
+
+  - name: "Migration"
+    type: "code"
+    content:
+      language: "sql"
+      content: |
+        -- v2.0 Migration (ran at 14:02:15)
+        ALTER TABLE users 
+        ADD COLUMN premium BOOLEAN DEFAULT false;
+        
+        -- This migration is NOT reversible!
+        -- Rolling back code doesn't roll back the database!
+        
+        -- v1.0 code expects:
+        -- users(id, email, name)
+        
+        -- v2.0 code expects:
+        -- users(id, email, name, premium)
+        
+        -- After rollback:
+        -- Code: v1.0 (expects old schema)
+        -- Database: v2.0 schema (has premium column)
+        -- Result: MISMATCH!
+
+  - name: "Reference"
+    type: "markdown"
+    content: |
+      # Database Migrations & Rollbacks
+      
+      **Safe Deployment: Backward-Compatible Migrations**
+      ```
+      Phase 1: Add new column (old code ignores it)
+        - Deploy migration
+        - Old code still works ✓
+      
+      Phase 2: Deploy new code (uses new column)
+        - New code works ✓
+        - Can rollback code safely ✓
+      
+      Phase 3: Remove old column (weeks later)
+        - Only after confirming new code is stable
+      ```
+
+tasks:
+  - type: "multiple-choice"
+    question: "Why did rolling back the code make things worse?"
+    options:
+      - "The rollback command had a bug"
+      - "The database is corrupted"
+      - "Old code expects old schema, but database has new schema with 'premium' column"
+      - "The servers are out of memory"
+    correct: 2
+    explanation: |
+      Exactly! This is schema/code mismatch.
+      
+      What happened:
+      1. v2.0 deployed + migration added 'premium' column
+      2. Database now has: users(id, email, name, premium)
+      3. Errors appeared, so you rolled back CODE
+      4. Now v1.0 code is running
+      5. But v1.0 code expects: users(id, email, name)
+      6. Database still has 'premium' column
+      7. Mismatch causes failures
+      
+      The lesson: Rolling back code does NOT roll back database!
+
+  - type: "multiple-choice"
+    question: "What's the best way to prevent this issue in the future?"
+    options:
+      - "Never do database migrations"
+      - "Always rollback database with code"
+      - "Use backward-compatible migrations - add nullable columns that old code can ignore"
+      - "Deploy during off-hours only"
+    correct: 2
+    explanation: |
+      Correct! Backward-compatible migrations are the safest approach.
+      
+      The expand/contract pattern:
+      
+      Week 1: Expand (add new column)
+      ALTER TABLE users ADD COLUMN premium BOOLEAN NULL;
+      - Old code (v1.0): Ignores premium column ✓
+      - New code (v2.0): Uses premium column ✓
+      - Rollback: Works! Old code doesn't care about extra column
+      
+      Week 2: Deploy new code
+      - New code uses premium column
+      - Can safely rollback if needed
+      
+      Week 3: Contract (after confirming stability)
+      - Make column NOT NULL if needed
+      - Remove old code paths
+
+completion:
+  summary: |
+    # What You Learned
+    
+    ## The Problem
+    Database migrations and code deployments are separate operations.
+    Rolling back code doesn't automatically roll back database changes,
+    creating schema/code mismatches.
+    
+    ## The Fix
+    Use backward-compatible migrations (expand/contract pattern):
+    1. Add new columns as nullable (old code ignores them)
+    2. Deploy new code (uses new columns)
+    3. Confirm stability (wait days/weeks)
+    4. Clean up old code paths
+    5. Add constraints if needed
+    
+    ## Deployment Best Practices
+    - **Backward compatibility**: Always make migrations work with N-1 version
+    - **Feature flags**: Toggle features without redeployment
+    - **Canary deploys**: Test on 5% of traffic first
+    - **Blue-green**: Keep old version running for instant rollback
+
+  resources:
+    - title: "Expand/Contract Pattern"
+      url: "https://martinfowler.com/bliki/ParallelChange.html"
+    - title: "Zero-Downtime Deployments"
+      url: "https://blog.codeship.com/zero-downtime-deployment/"
