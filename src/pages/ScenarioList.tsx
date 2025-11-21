@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { CheckCircle, Lock, Play } from 'lucide-react';
+import { CheckCircle, Lock, Play, ArrowLeft, Trophy } from 'lucide-react';
 
 // Mock data - will be replaced with actual scenario loading
 const scenarios = {
@@ -146,38 +146,71 @@ const scenarios = {
   ]
 };
 
+const levelConfig = {
+  beginner: {
+    color: 'from-green-600 to-emerald-600',
+    badge: 'bg-green-500/20 text-green-400 border-green-500'
+  },
+  intermediate: {
+    color: 'from-yellow-600 to-orange-600',
+    badge: 'bg-yellow-500/20 text-yellow-400 border-yellow-500'
+  },
+  advanced: {
+    color: 'from-red-600 to-orange-600',
+    badge: 'bg-red-500/20 text-red-400 border-red-500'
+  }
+};
+
 export function ScenarioList() {
   const { level } = useParams<{ level: string }>();
   const scenarioList = scenarios[level as keyof typeof scenarios] || [];
+  const config = levelConfig[level as keyof typeof levelConfig];
 
   const completedCount = scenarioList.filter(s => s.completed).length;
   const progress = (completedCount / scenarioList.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/" className="text-blue-600 hover:underline mb-4 inline-block">
-            ← Back to Home
+          <Link
+            to="/"
+            className="text-orange-400 hover:text-orange-300 mb-4 inline-flex items-center gap-2 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
           </Link>
-          <h1 className="text-4xl font-bold capitalize mb-2">
-            {level} Level
-          </h1>
-          <p className="text-gray-600">
-            Master the fundamentals of production debugging
+          <div className="flex items-center gap-4 mb-4">
+            <h1 className={`text-5xl font-bold capitalize bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
+              {level} Level
+            </h1>
+            {completedCount === scenarioList.length && (
+              <Trophy className="w-10 h-10 text-yellow-400" />
+            )}
+          </div>
+          <p className="text-gray-400 text-lg">
+            {level === 'beginner' && 'Master the fundamentals of production debugging'}
+            {level === 'intermediate' && 'Advanced production debugging challenges'}
+            {level === 'advanced' && 'Real production disasters from major tech companies'}
           </p>
         </div>
 
         {/* Progress */}
-        <div className="bg-white rounded-lg p-6 mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-600">Progress</span>
-            <span className="text-gray-600">{completedCount}/{scenarioList.length} completed</span>
+        <div className="bg-gray-800 rounded-xl p-6 mb-8 border border-gray-700">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-gray-300 font-semibold">Your Progress</span>
+            <span className="text-gray-400">{completedCount}/{scenarioList.length} completed</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${progress}%` }} />
+          <div className="w-full bg-gray-700 rounded-full h-3">
+            <div
+              className={`bg-gradient-to-r ${config.color} h-3 rounded-full transition-all duration-500`}
+              style={{ width: `${progress}%` }}
+            />
           </div>
+          {progress === 100 && (
+            <p className="mt-3 text-green-400 font-semibold">🎉 Level Complete! Amazing work!</p>
+          )}
         </div>
 
         {/* Scenario Cards */}
@@ -188,6 +221,7 @@ export function ScenarioList() {
               scenario={scenario}
               level={level!}
               index={index + 1}
+              config={config}
             />
           ))}
         </div>
@@ -208,47 +242,83 @@ interface ScenarioCardProps {
   };
   level: string;
   index: number;
+  config: {
+    color: string;
+    badge: string;
+  };
 }
 
-function ScenarioCard({ scenario, level, index }: ScenarioCardProps) {
+function ScenarioCard({ scenario, level, index, config }: ScenarioCardProps) {
   const { completed, locked, id, title, duration, teaches, description } = scenario;
 
   return (
-    <div className={`bg-white rounded-lg p-6 border-2 ${
-      locked ? 'opacity-60' : 'hover:shadow-lg'
-    } transition-shadow`}>
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl font-bold text-gray-300">
-            {index}.
-          </span>
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-            <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
-              <span>⏱️ {duration}</span>
-              <span>•</span>
-              <span>📚 {teaches.join(', ')}</span>
+    <div className={`bg-gray-800 rounded-xl p-6 border-2 border-gray-700 ${
+      locked ? 'opacity-60' : 'hover:border-orange-500 hover:shadow-2xl'
+    } transition-all relative overflow-hidden group`}>
+      {/* Subtle gradient overlay on hover */}
+      <div className={`absolute inset-0 bg-gradient-to-r ${config.color} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
+
+      <div className="relative">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <span className={`text-3xl font-bold bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
+              {index}
+            </span>
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
+              <div className="flex items-center gap-3 text-sm text-gray-400">
+                <span className="flex items-center gap-1">
+                  ⏱️ {duration}
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  📚 {teaches.join(' • ')}
+                </span>
+              </div>
             </div>
+          </div>
+
+          <div className="flex-shrink-0">
+            {completed && (
+              <div className="bg-green-500/20 border border-green-500 rounded-full p-2">
+                <CheckCircle className="w-6 h-6 text-green-400" />
+              </div>
+            )}
+            {locked && (
+              <div className="bg-gray-700 border border-gray-600 rounded-full p-2">
+                <Lock className="w-6 h-6 text-gray-500" />
+              </div>
+            )}
+            {!completed && !locked && (
+              <div className={`bg-gradient-to-r ${config.color} rounded-full p-2`}>
+                <Play className="w-6 h-6 text-white" />
+              </div>
+            )}
           </div>
         </div>
 
-        <div>
-          {completed && <CheckCircle className="w-6 h-6 text-green-500" />}
-          {locked && <Lock className="w-6 h-6 text-gray-400" />}
-          {!completed && !locked && <Play className="w-6 h-6 text-blue-600" />}
-        </div>
+        <p className="text-gray-300 mb-4 leading-relaxed">{description}</p>
+
+        {!locked && (
+          <Link
+            to={`/${level}/${id}`}
+            className={`inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${config.color} text-white rounded-lg font-semibold hover:shadow-xl transition-all`}
+          >
+            {completed ? 'Review Scenario' : 'Start Scenario'}
+            <span>→</span>
+          </Link>
+        )}
+
+        {locked && (
+          <button
+            disabled
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-700 text-gray-500 rounded-lg font-semibold cursor-not-allowed"
+          >
+            <Lock className="w-4 h-4" />
+            Locked
+          </button>
+        )}
       </div>
-
-      <p className="text-gray-600 mb-4">{description}</p>
-
-      {!locked && (
-        <Link
-          to={`/${level}/${id}`}
-          className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          {completed ? 'Review Scenario' : 'Start Scenario'} →
-        </Link>
-      )}
     </div>
   );
 }
