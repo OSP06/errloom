@@ -11,14 +11,19 @@ Errloom is an interactive learning platform that teaches developers how to debug
 
 ## ✨ Features
 
-- **🎯 Interactive Scenarios** - Real-world production debugging exercises
-- **📊 Three Difficulty Levels** - Beginner, Intermediate, and Advanced scenarios
-- **💻 Multiple Task Types** - Multiple choice questions, code fixes, and log analysis
-- **🎨 Modern UI** - Clean, responsive interface built with React and Tailwind CSS
-- **🔧 Monaco Editor** - Full-featured code editor (VS Code's editor)
-- **📈 Progress Tracking** - Track completion across scenarios
-- **🎓 Educational Resources** - Links to additional learning materials
+- **🎯 Interactive Scenarios** - Real-world production debugging exercises from beginner to advanced
+- **📊 Three Difficulty Levels** - Beginner (5 scenarios), Intermediate (5 scenarios), Advanced (5 real incidents)
+- **💻 Multiple Task Types** - Multiple choice questions, code fixes, and interactive log analysis
+- **🎨 Modern Dark Theme UI** - Beautiful dark gradient interface with orange/red accents
+- **🔧 Monaco Editor** - Full-featured code editor with syntax highlighting (VS Code's editor)
+- **📈 Progress Tracking** - Automatic progress tracking with localStorage persistence
+- **⏱️ Scenario Timer** - Track your completion time and beat target times
+- **🔄 Smart Navigation** - Auto-navigate to next scenario after completion
+- **📊 Analytics Integration** - Built-in Vercel Analytics for usage tracking
+- **🎓 Educational Resources** - Curated links to additional learning materials
+- **🏆 Real Incident Context** - Learn from actual outages at Reddit, GitLab, Discord, AWS, and Cloudflare
 - **🚀 No Setup Required** - 100% browser-based, no cloud or backend needed
+- **💾 Persistent Progress** - Your progress is saved locally and persists across sessions
 
 ## 🎮 Available Scenarios
 
@@ -149,19 +154,23 @@ errloom/
 │           └── cloudflare-bgp-hijack.yaml
 ├── src/
 │   ├── components/         # React components
-│   │   ├── ScenarioPlayer.tsx
-│   │   ├── TaskPanel.tsx
-│   │   ├── LogViewer.tsx
-│   │   ├── CodeEditor.tsx
-│   │   └── TabNavigation.tsx
+│   │   ├── ScenarioPlayer.tsx      # Main scenario player with timer
+│   │   ├── TaskPanel.tsx           # Task handling (MCQ, code, logs)
+│   │   ├── InteractiveLogViewer.tsx # Clickable log entries
+│   │   ├── RealIncidentContext.tsx  # Real incident information
+│   │   ├── ScenarioTimer.tsx        # Timer and performance tracking
+│   │   ├── CodeEditor.tsx           # Monaco editor wrapper
+│   │   └── TabNavigation.tsx        # Tab navigation component
 │   ├── lib/
-│   │   ├── types.ts        # TypeScript type definitions
-│   │   └── scenarioLoader.ts
+│   │   ├── types.ts                 # TypeScript type definitions
+│   │   ├── scenarioLoader.ts        # YAML scenario loader
+│   │   └── progressStore.ts         # Zustand store for progress tracking
 │   ├── pages/
-│   │   ├── Landing.tsx
-│   │   └── ScenarioList.tsx
+│   │   ├── Landing.tsx              # Landing page with dark theme
+│   │   └── ScenarioList.tsx         # Scenario list with progress bar
 │   ├── App.tsx
-│   └── main.tsx
+│   └── main.tsx                     # Entry point with Analytics
+├── vercel.json             # Vercel deployment configuration
 ├── package.json
 ├── vite.config.ts
 ├── tailwind.config.js
@@ -226,15 +235,16 @@ completion:
 
 ## 🛠️ Tech Stack
 
-- **Frontend Framework**: React 19.2
-- **Language**: TypeScript 5.9
-- **Build Tool**: Vite 7.2
-- **Routing**: React Router DOM 7.9
-- **State Management**: Zustand 5.0
-- **Styling**: Tailwind CSS 4.1
-- **Code Editor**: Monaco Editor (VS Code's editor)
-- **Icons**: Lucide React
-- **YAML Parsing**: js-yaml
+- **Frontend Framework**: React 19.2 with TypeScript 5.9
+- **Build Tool**: Vite 7.2 - Lightning fast HMR and builds
+- **Routing**: React Router DOM 7.9 - Client-side routing
+- **State Management**: Zustand 5.0 - Lightweight state management with persistence
+- **Styling**: Tailwind CSS 4.1 - Utility-first CSS with dark theme
+- **Code Editor**: Monaco Editor 4.7 - VS Code's powerful editor
+- **Icons**: Lucide React 0.554 - Beautiful icon library
+- **YAML Parsing**: js-yaml 4.1 - Scenario configuration parsing
+- **Analytics**: Vercel Analytics 1.5 - Privacy-friendly analytics
+- **Deployment**: Vercel - Serverless deployment platform
 
 ## 🤝 Contributing
 
@@ -272,15 +282,63 @@ git push origin feature/your-feature-name
 # Open a Pull Request
 ```
 
+## 🚀 Deployment
+
+Errloom is configured for easy deployment on Vercel:
+
+### Deploy to Vercel
+
+1. **Fork and Connect**
+   ```bash
+   # The repository is ready for Vercel deployment
+   # Just import it from your GitHub account
+   ```
+
+2. **Auto-Configuration**
+   - Framework: Vite (auto-detected)
+   - Build Command: `npm run build` (auto-detected)
+   - Output Directory: `dist` (auto-detected)
+
+3. **Add Custom Domain** (Optional)
+   - Go to Project Settings → Domains
+   - Add your custom domain (e.g., errloom.dev)
+   - Update DNS records as instructed
+
+4. **Enable Analytics**
+   - Navigate to Analytics tab in Vercel dashboard
+   - Enable Web Analytics (free tier available)
+
+### Configuration Files
+
+- **vercel.json** - SPA routing and caching configuration
+- **Analytics** - Pre-integrated `@vercel/analytics/react`
+
+## 📊 Progress Tracking
+
+Errloom automatically tracks your progress using localStorage:
+
+- **Persistent Progress**: Your completion status is saved locally
+- **Cross-Session**: Progress persists even after closing the browser
+- **Level-Based Tracking**: Each difficulty level tracks separately
+- **Visual Indicators**: Progress bars and completion badges
+
+## 🎨 Design System
+
+- **Color Palette**: Dark theme with orange (#f97316) and red (#dc2626) accents
+- **Typography**: System fonts with clear hierarchy
+- **Components**: Consistent rounded corners, shadows, and hover states
+- **Responsive**: Mobile-first design that scales to desktop
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Inspired by real-world production incidents and outage postmortems
+- Inspired by real-world production incidents and outage postmortems from Reddit, GitLab, Discord, AWS, and Cloudflare
 - Built with modern web technologies and best practices
 - Community-driven scenario contributions
+- Powered by Vercel for deployment and analytics
 
 ## 🌟 Show Your Support
 
