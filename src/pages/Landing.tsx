@@ -29,23 +29,40 @@ export function Landing() {
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl mb-6 shadow-2xl">
               <Flame className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-6xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-orange-400 via-red-500 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-6xl md:text-7xl font-bold font-mono mb-6 bg-gradient-to-r from-orange-400 via-red-500 to-purple-600 bg-clip-text text-transparent">
               Errloom
             </h1>
-            <p className="text-2xl md:text-3xl text-gray-300 mb-4 font-light">
-              Debug Production Outages in Your Browser
-            </p>
-            <p className="text-gray-400 text-lg">
-              Learn from real disasters • No setup • 100% free
-            </p>
-          </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-16">
-            <StatCard icon={<Target className="w-6 h-6" />} value={totalScenarios.toString()} label="Scenarios" />
-            <StatCard icon={<Clock className="w-6 h-6" />} value={`${totalHours}+`} label="Hours" />
-            <StatCard icon={<Trophy className="w-6 h-6" />} value="100%" label="Free" />
-            <StatCard icon={<Code className="w-6 h-6" />} value="Real" label="Incidents" />
+            {/* What is Errloom */}
+            <div className="max-w-3xl mx-auto mb-6">
+              <p className="text-2xl md:text-3xl text-gray-200 mb-4 font-light leading-relaxed">
+                Master production debugging through <span className="text-orange-400 font-semibold">real-world disaster scenarios</span>
+              </p>
+              <p className="text-lg text-gray-400 leading-relaxed mb-6">
+                Practice debugging real production outages from Reddit, GitLab, Discord, AWS, and Cloudflare.
+                Learn how to read logs, trace errors, and fix critical bugs—all in your browser, no setup required.
+              </p>
+
+              {/* Compact inline stats */}
+              <div className="flex flex-wrap items-center justify-center gap-3 text-sm font-mono">
+                <span className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
+                  <Target className="w-4 h-4 inline mr-1.5 text-orange-400" />
+                  {totalScenarios} scenarios
+                </span>
+                <span className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
+                  <Clock className="w-4 h-4 inline mr-1.5 text-orange-400" />
+                  {totalHours}+ hours
+                </span>
+                <span className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
+                  <Trophy className="w-4 h-4 inline mr-1.5 text-green-400" />
+                  100% free
+                </span>
+                <span className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
+                  <Code className="w-4 h-4 inline mr-1.5 text-red-400" />
+                  Real incidents
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* CTA Buttons */}
@@ -74,7 +91,7 @@ export function Landing() {
 
       {/* Features Section */}
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Why Errloom?</h2>
+        <h2 className="text-3xl font-bold font-mono text-center mb-12">Why Errloom?</h2>
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           <FeatureCard
             title="Real Production Disasters"
@@ -96,7 +113,7 @@ export function Landing() {
 
       {/* Level Cards Section */}
       <div id="choose-level" className="max-w-7xl mx-auto px-4 py-16 scroll-mt-8">
-        <h2 className="text-3xl font-bold text-center mb-4">Choose Your Level</h2>
+        <h2 className="text-3xl font-bold font-mono text-center mb-4">Choose Your Level</h2>
         <p className="text-gray-400 text-center mb-12">From fundamentals to real-world disasters</p>
 
         <div className="grid md:grid-cols-3 gap-8 mb-16">
@@ -160,7 +177,7 @@ export function Landing() {
       {/* What You'll Learn Section */}
       <div className="bg-gradient-to-r from-gray-800 to-gray-900 py-16">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">What You'll Master</h2>
+          <h2 className="text-3xl font-bold font-mono text-center mb-12">What You'll Master</h2>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <SkillItem skill="Reading and analyzing production logs" />
             <SkillItem skill="Debugging N+1 queries and performance issues" />
@@ -197,18 +214,6 @@ export function Landing() {
           Made with ❤️ for developers learning production debugging
         </p>
       </div>
-    </div>
-  );
-}
-
-function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
-  return (
-    <div className="bg-gray-800 rounded-xl p-6 text-center border border-gray-700 hover:border-orange-500 transition-colors">
-      <div className="flex justify-center mb-2 text-orange-400">
-        {icon}
-      </div>
-      <div className="text-3xl font-bold mb-1">{value}</div>
-      <div className="text-gray-400 text-sm">{label}</div>
     </div>
   );
 }

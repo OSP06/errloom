@@ -3,6 +3,7 @@ import { CheckCircle, Lock, Play, ArrowLeft, Trophy } from 'lucide-react';
 import { useProgressStore } from '../lib/progressStore';
 import { useState, useEffect } from 'react';
 import { getScenariosByLevel, type ScenarioMetadata } from '../lib/manifestLoader';
+import { TerminalWindow } from '../components/TerminalWindow';
 
 // Legacy export for backward compatibility with ScenarioPlayer
 export const scenarios = {
@@ -230,7 +231,7 @@ export function ScenarioList() {
             Back to Home
           </Link>
           <div className="flex items-center gap-4 mb-4">
-            <h1 className={`text-5xl font-bold capitalize bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
+            <h1 className={`text-5xl font-bold font-mono capitalize bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
               {level} Level
             </h1>
             {completedCount === scenarioList.length && (
@@ -299,34 +300,49 @@ interface ScenarioCardProps {
 function ScenarioCard({ scenario, level, index, config }: ScenarioCardProps) {
   const { completed, locked, id, title, duration, teaches, description } = scenario;
 
-  return (
-    <div className={`bg-gray-800 rounded-xl p-6 border-2 border-gray-700 ${
-      locked ? 'opacity-60' : 'hover:border-orange-500 hover:shadow-2xl'
-    } transition-all relative overflow-hidden group`}>
-      {/* Subtle gradient overlay on hover */}
-      <div className={`absolute inset-0 bg-gradient-to-r ${config.color} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
+  const getStatusIcon = () => {
+    if (completed) return '✓';
+    if (locked) return '🔒';
+    return '⚠️';
+  };
 
-      <div className="relative">
-        <div className="flex items-start justify-between mb-4">
+  const getVariant = () => {
+    if (completed) return 'success' as const;
+    if (locked) return 'default' as const;
+    return 'error' as const;
+  };
+
+  return (
+    <TerminalWindow
+      title={`scenario_${id.replace(/-/g, '_')}.debug`}
+      variant={getVariant()}
+      className={`${locked ? 'opacity-60' : 'hover:scale-[1.01]'} transition-all group`}
+    >
+      <div className="space-y-4">
+        {/* Header with status */}
+        <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <span className={`text-3xl font-bold bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
+            <span className={`text-3xl font-bold font-mono bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
               {index}
             </span>
             <div>
-              <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
-              <div className="flex items-center gap-3 text-sm text-gray-400">
-                <span className="flex items-center gap-1">
-                  ⏱️ {duration}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl font-mono text-terminal-red">
+                  {getStatusIcon()} ERROR:
                 </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  📚 {teaches.join(' • ')}
-                </span>
+                <h3 className="text-xl font-mono text-white">
+                  {title.replace(/\s+/g, '_').toUpperCase()}
+                </h3>
+              </div>
+              <div className="font-mono text-xs text-gray-500 space-y-1">
+                <div>├─ Duration:  {duration}</div>
+                <div>├─ Topics:    {teaches.join(', ')}</div>
+                <div>└─ Severity:  {locked ? '🔒 LOCKED' : completed ? '✓ COMPLETED' : level.toUpperCase()}</div>
               </div>
             </div>
           </div>
 
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             {completed && (
               <div className="bg-green-500/20 border border-green-500 rounded-full p-2">
                 <CheckCircle className="w-6 h-6 text-green-400" />
@@ -345,28 +361,31 @@ function ScenarioCard({ scenario, level, index, config }: ScenarioCardProps) {
           </div>
         </div>
 
-        <p className="text-gray-300 mb-4 leading-relaxed">{description}</p>
+        {/* Description */}
+        <p className="text-gray-300 leading-relaxed border-l-2 border-gray-700 pl-4">
+          {description}
+        </p>
 
+        {/* Action button */}
         {!locked && (
           <Link
             to={`/${level}/${id}`}
-            className={`inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${config.color} text-white rounded-lg font-semibold hover:shadow-xl transition-all`}
+            className={`inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${config.color} text-white rounded-lg font-mono font-semibold hover:shadow-xl transition-all`}
           >
-            {completed ? 'Review Scenario' : 'Start Scenario'}
-            <span>→</span>
+            {completed ? 'REVIEW_SCENARIO' : 'START_DEBUG'} →
           </Link>
         )}
 
         {locked && (
           <button
             disabled
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-700 text-gray-500 rounded-lg font-semibold cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-700 text-gray-500 rounded-lg font-mono font-semibold cursor-not-allowed"
           >
             <Lock className="w-4 h-4" />
-            Locked
+            LOCKED
           </button>
         )}
       </div>
-    </div>
+    </TerminalWindow>
   );
 }

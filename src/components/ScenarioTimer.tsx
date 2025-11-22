@@ -31,33 +31,45 @@ export function ScenarioTimer({ targetTime }: ScenarioTimerProps) {
   const percentOfTarget = (seconds / targetSeconds) * 100;
 
   return (
-    <div className="fixed top-4 right-4 bg-gray-900 text-white rounded-xl px-6 py-4 shadow-2xl border border-gray-700 z-50">
-      <div className="flex items-center gap-4">
-        <Clock className="w-6 h-6 text-orange-400" />
-        <div>
-          <div className="text-3xl font-mono font-bold tabular-nums">
-            {formatTime(seconds)}
-          </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
-            <Target className="w-3 h-3" />
-            <span>Target: {targetTime} min</span>
-            {isUnderTarget && (
-              <span className="text-green-400 font-semibold ml-2">
-                ⚡ On pace!
-              </span>
-            )}
-          </div>
+    <div className="fixed top-4 right-4 bg-gray-800 text-white rounded-lg shadow-xl border border-gray-700 z-50 overflow-hidden w-40">
+      {/* Terminal chrome header */}
+      <div className="bg-gray-900 border-b border-gray-700 px-2 py-1 flex items-center justify-between">
+        <span className="font-mono text-[10px] text-gray-400">timer</span>
+        <div className="flex gap-1">
+          <div className="w-1.5 h-1.5 rounded-full bg-red-500/60"></div>
+          <div className="w-1.5 h-1.5 rounded-full bg-yellow-500/60"></div>
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500/60"></div>
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="mt-3 w-full bg-gray-800 rounded-full h-1.5">
-        <div
-          className={`h-1.5 rounded-full transition-all ${
-            isUnderTarget ? 'bg-green-500' : 'bg-red-500'
-          }`}
-          style={{ width: `${Math.min(percentOfTarget, 100)}%` }}
-        />
+      {/* Timer content */}
+      <div className="p-2.5">
+        <div className="text-center mb-2">
+          <div className="text-2xl font-mono font-bold tabular-nums text-terminal-green">
+            {formatTime(seconds)}
+          </div>
+          <div className="h-px bg-gray-700 my-1.5"></div>
+          <div className="font-mono text-[10px] text-gray-400 space-y-0.5">
+            <div>TARGET: {targetTime}:00</div>
+            <div className={isUnderTarget ? 'text-terminal-green' : 'text-terminal-red'}>
+              {isUnderTarget ? '✓ AHEAD' : '✗ BEHIND'}
+            </div>
+          </div>
+        </div>
+
+        {/* Compact progress bar */}
+        <div className="font-terminal text-[10px]">
+          {Array.from({ length: 14 }).map((_, i) => {
+            const threshold = (i / 14) * 100;
+            if (threshold < percentOfTarget) {
+              return <span key={i} className={isUnderTarget ? 'text-terminal-green' : 'text-terminal-red'}>▓</span>;
+            }
+            return <span key={i} className="text-gray-700">░</span>;
+          })}
+          <span className={`ml-1 ${isUnderTarget ? 'text-terminal-green' : 'text-terminal-red'}`}>
+            {Math.min(Math.round(percentOfTarget), 100)}%
+          </span>
+        </div>
       </div>
     </div>
   );

@@ -107,7 +107,7 @@ export function ScenarioPlayer() {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="font-bold text-lg">{scenario.title}</h1>
+              <h1 className="font-bold font-mono text-lg">{scenario.title}</h1>
               <p className="text-sm text-gray-400 capitalize">
                 {scenario.level} • {scenario.duration}
               </p>
@@ -147,7 +147,7 @@ export function ScenarioPlayer() {
             <div className="flex items-start gap-3">
               <BookOpen className="w-5 h-5 text-blue-400 mt-1 flex-shrink-0" />
               <div>
-                <h2 className="font-semibold mb-2 text-blue-100">Context</h2>
+                <h2 className="font-semibold font-mono mb-2 text-blue-100">CONTEXT</h2>
                 <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
                   {scenario.context}
                 </p>
@@ -174,7 +174,7 @@ export function ScenarioPlayer() {
             {!completed ? (
               <>
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold mb-2">Your Mission</h2>
+                  <h2 className="text-2xl font-bold font-mono mb-2">YOUR_MISSION</h2>
                   <p className="text-gray-400">
                     Complete the tasks below to solve the outage
                   </p>
