@@ -328,8 +328,8 @@ Contributions are welcome! Here's how you can help:
 ### Development Workflow
 
 ```bash
-# Fork and clone the repository
-git clone https://github.com/OSP06/errloom.git
+# Fork and clone the repository by using your username.
+git clone https://github.com/{your_username}/errloom.git
 
 # Create a feature branch
 git checkout -b feature/your-feature-name
