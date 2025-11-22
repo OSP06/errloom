@@ -2,6 +2,7 @@ id: "404-error"
 level: "beginner"
 title: "The 404 Error"
 duration: "15 minutes"
+description: "Your first production bug. Learn to read logs and understand HTTP status codes."
 teaches:
   - "HTTP"
   - "Logs"

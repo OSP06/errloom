@@ -2,6 +2,7 @@ id: "cache-stampede"
 level: "intermediate"
 title: "The Cache Stampede"
 duration: "28 minutes"
+description: "You cleared the cache. Now 10,000 users are hammering your database simultaneously."
 teaches:
   - "Caching Strategies"
   - "Cache Invalidation"

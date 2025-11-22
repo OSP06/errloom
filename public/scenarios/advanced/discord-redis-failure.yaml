@@ -2,6 +2,7 @@ id: "discord-redis-failure"
 level: "advanced"
 title: "Discord's Redis Cascade Failure"
 duration: "32 minutes"
+description: "@everyone to 5M users. 50K req/sec to one key. Redis melting. No fallback. Cascade!"
 teaches:
   - "Redis Clustering"
   - "Cache Failures"

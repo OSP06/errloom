@@ -2,6 +2,7 @@ id: "aws-cascade-failure"
 level: "advanced"
 title: "AWS S3 Cascade Failure"
 duration: "33 minutes"
+description: "Typo removed 500 servers instead of 5. S3 down. Half the internet down. Status page down!"
 teaches:
   - "Service Dependencies"
   - "Blast Radius"

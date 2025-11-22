@@ -2,6 +2,7 @@ id: "env-variable"
 level: "beginner"
 title: "The Missing Environment Variable"
 duration: "16 minutes"
+description: "Everything worked locally, but production crashes on startup. What went wrong?"
 teaches:
   - "Environment Variables"
   - "Configuration"

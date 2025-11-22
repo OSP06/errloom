@@ -2,6 +2,7 @@ id: "cors-error"
 level: "beginner"
 title: "The CORS Error"
 duration: "17 minutes"
+description: "Your API works in Postman but not in the browser. Why?"
 teaches:
   - "CORS"
   - "HTTP Headers"

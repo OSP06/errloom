@@ -2,6 +2,7 @@ id: "memory-leak"
 level: "beginner"
 title: "The Memory Leak"
 duration: "18 minutes"
+description: "Your server crashes every few hours. Track down the memory leak."
 teaches:
   - "Memory Management"
   - "Event Listeners"

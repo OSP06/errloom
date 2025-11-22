@@ -2,6 +2,7 @@ id: "queue-backup"
 level: "intermediate"
 title: "The Message Queue Backup"
 duration: "24 minutes"
+description: "8,000 welcome emails stuck in queue. Users are waiting hours. Scale up!"
 teaches:
   - "Message Queues"
   - "Async Processing"

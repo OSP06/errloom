@@ -2,6 +2,7 @@ id: "db-pool-exhausted"
 level: "intermediate"
 title: "Database Connection Pool Exhausted"
 duration: "25 minutes"
+description: "Black Friday traffic spike! Your database is idle but all requests timeout. Why?"
 teaches:
   - "Connection Pooling"
   - "Resource Management"

@@ -2,6 +2,7 @@ id: "failed-deployment"
 level: "intermediate"
 title: "The Failed Deployment"
 duration: "22 minutes"
+description: "Rolling back the code made things WORSE. The database still has the new schema!"
 teaches:
   - "Deployment Strategies"
   - "Rollback Procedures"

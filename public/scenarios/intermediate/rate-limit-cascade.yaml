@@ -2,6 +2,7 @@ id: "rate-limit-cascade"
 level: "intermediate"
 title: "The Rate Limit Cascade"
 duration: "23 minutes"
+description: "Stripe is rate limiting you. User retries make it 8x worse. Stop the cascade!"
 teaches:
   - "Rate Limiting"
   - "API Dependencies"

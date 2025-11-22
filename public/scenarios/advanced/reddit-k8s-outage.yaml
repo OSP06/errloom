@@ -2,6 +2,7 @@ id: "reddit-k8s-outage"
 level: "advanced"
 title: "Reddit's Kubernetes Meltdown"
 duration: "35 minutes"
+description: "Auto-scaler death spiral: 50 healthy pods → 500 crashing pods in 60 seconds. Stop it!"
 teaches:
   - "Kubernetes"
   - "Auto-scaling"

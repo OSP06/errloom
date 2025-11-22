@@ -2,6 +2,7 @@ id: "gitlab-data-loss"
 level: "advanced"
 title: "GitLab's Accidental Database Deletion"
 duration: "30 minutes"
+description: "You just ran rm -rf on production. 276GB deleted. Your backups are broken. Now what?"
 teaches:
   - "Database Replication"
   - "Backup & Recovery"

@@ -2,6 +2,7 @@ id: "slow-api"
 level: "beginner"
 title: "The Slow API"
 duration: "20 minutes"
+description: "Your homepage takes 8 seconds to load. Find and fix the N+1 query problem."
 teaches:
   - "Performance"
   - "Database Queries"
