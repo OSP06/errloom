@@ -16,7 +16,7 @@ export function Landing() {
               <Flame className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-6xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-orange-400 via-red-500 to-purple-600 bg-clip-text text-transparent">
-              OutageLab
+              Errloom
             </h1>
             <p className="text-2xl md:text-3xl text-gray-300 mb-4 font-light">
               Debug Production Outages in Your Browser
@@ -46,7 +46,7 @@ export function Landing() {
               Start Learning Now →
             </button>
             <a
-              href="https://github.com/OSP06/outagelab"
+              href="https://github.com/OSP06/errloom"
               target="_blank"
               rel="noopener noreferrer"
               className="px-8 py-4 bg-gray-800 text-white rounded-xl font-semibold text-lg hover:bg-gray-700 transform hover:scale-105 transition-all border border-gray-700 flex items-center gap-2"
@@ -60,7 +60,7 @@ export function Landing() {
 
       {/* Features Section */}
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Why OutageLab?</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">Why Errloom?</h2>
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           <FeatureCard
             title="Real Production Disasters"
@@ -167,7 +167,7 @@ export function Landing() {
         </p>
         <div className="flex justify-center gap-6 text-sm">
           <a
-            href="https://github.com/OSP06/outagelab"
+            href="https://github.com/OSP06/errloom"
             target="_blank"
             rel="noopener noreferrer"
             className="text-orange-400 hover:text-orange-300 transition-colors"

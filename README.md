@@ -1,8 +1,8 @@
-# 🔥 OutageLab
+# 🔥 Errloom
 
 **Debug Production Outages in Your Browser**
 
-OutageLab is an interactive learning platform that teaches developers how to debug real-world production outages. Practice troubleshooting common issues like 404 errors, N+1 queries, memory leaks, CORS errors, and environment variable misconfigurations—all in your browser with no setup required.
+Errloom is an interactive learning platform that teaches developers how to debug real-world production outages. Practice troubleshooting common issues like 404 errors, N+1 queries, memory leaks, CORS errors, and environment variable misconfigurations—all in your browser with no setup required.
 
 [![Built with React](https://img.shields.io/badge/React-19.2-blue.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
@@ -101,8 +101,8 @@ Real production disasters from major tech companies!
 
 ```bash
 # Clone the repository
-git clone https://github.com/OSP06/outagelab.git
-cd outagelab
+git clone https://github.com/OSP06/errloom.git
+cd errloom
 
 # Install dependencies
 npm install
@@ -126,7 +126,7 @@ npm run preview
 ## 🏗️ Project Structure
 
 ```
-outagelab/
+errloom/
 ├── public/
 │   └── scenarios/          # YAML scenario definitions
 │       ├── beginner/
@@ -250,7 +250,7 @@ Contributions are welcome! Here's how you can help:
 
 ```bash
 # Fork and clone the repository
-git clone https://github.com/yourusername/outagelab.git
+git clone https://github.com/yourusername/errloom.git
 
 # Create a feature branch
 git checkout -b feature/your-feature-name
@@ -302,4 +302,4 @@ For questions, suggestions, or feedback:
 
 **Made with ❤️ for developers learning production debugging**
 
-🔥 **Start debugging now at [outagelab.dev](https://outagelab.dev)**
+🔥 **Start debugging now at [errloom.dev](https://errloom.dev)**
