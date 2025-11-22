@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { CheckCircle, Lock, Play, ArrowLeft, Trophy } from 'lucide-react';
 
 // Mock data - will be replaced with actual scenario loading
-const scenarios = {
+export const scenarios = {
   beginner: [
     {
       id: '404-error',

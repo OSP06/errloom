@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Sparkles, BookOpen } from 'lucide-react';
 import { InteractiveLogViewer } from './InteractiveLogViewer';
 import { RealIncidentContext } from './RealIncidentContext';
@@ -9,6 +9,7 @@ import { TabNavigation } from './TabNavigation';
 import { CodeEditor } from './CodeEditor';
 import type { Scenario, TaskResult, LogEntry, CodeContent } from '../lib/types';
 import { loadScenario } from '../lib/scenarioLoader';
+import { scenarios } from '../pages/ScenarioList';
 
 export function ScenarioPlayer() {
   const { level, scenarioId } = useParams();
@@ -224,6 +225,31 @@ function CompletionScreen({
   scenario: Scenario;
   timeElapsed: number;
 }) {
+  const navigate = useNavigate();
+
+  // Find next scenario
+  const getNextScenario = () => {
+    const levelScenarios = scenarios[scenario.level as keyof typeof scenarios];
+    if (!levelScenarios) return null;
+
+    const currentIndex = levelScenarios.findIndex((s) => s.id === scenario.id);
+    if (currentIndex === -1 || currentIndex === levelScenarios.length - 1) {
+      return null; // No next scenario in this level
+    }
+
+    return levelScenarios[currentIndex + 1];
+  };
+
+  const nextScenario = getNextScenario();
+
+  const handleNextScenario = () => {
+    if (nextScenario) {
+      navigate(`/${scenario.level}/${nextScenario.id}`);
+    } else {
+      navigate(`/${scenario.level}`);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="text-center">
@@ -288,8 +314,11 @@ function CompletionScreen({
         >
           Back to Scenarios
         </Link>
-        <button className="flex-1 py-3 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-center rounded-lg font-semibold transition-all">
-          Next Scenario →
+        <button
+          onClick={handleNextScenario}
+          className="flex-1 py-3 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-center rounded-lg font-semibold transition-all"
+        >
+          {nextScenario ? 'Next Scenario →' : 'View All Scenarios'}
         </button>
       </div>
     </div>
