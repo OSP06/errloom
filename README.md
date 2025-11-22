@@ -116,7 +116,7 @@ npm install
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`
+The app will be available at `https://errloom.dev`
 
 ### Build for Production
 
@@ -289,24 +289,10 @@ Errloom is configured for easy deployment on Vercel:
 ### Deploy to Vercel
 
 1. **Fork and Connect**
-   ```bash
-   # The repository is ready for Vercel deployment
-   # Just import it from your GitHub account
-   ```
 
 2. **Auto-Configuration**
-   - Framework: Vite (auto-detected)
-   - Build Command: `npm run build` (auto-detected)
-   - Output Directory: `dist` (auto-detected)
 
-3. **Add Custom Domain** (Optional)
-   - Go to Project Settings → Domains
-   - Add your custom domain (e.g., errloom.dev)
-   - Update DNS records as instructed
-
-4. **Enable Analytics**
-   - Navigate to Analytics tab in Vercel dashboard
-   - Enable Web Analytics (free tier available)
+3. **Enabled Analytics**
 
 ### Configuration Files
 
