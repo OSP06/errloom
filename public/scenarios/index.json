@@ -1,0 +1,268 @@
+{
+  "version": "1.0",
+  "generatedAt": "2025-11-22T02:49:28.615Z",
+  "levels": {
+    "beginner": {
+      "scenarios": [
+        {
+          "id": "404-error",
+          "title": "The 404 Error",
+          "duration": "15 minutes",
+          "durationMinutes": 15,
+          "teaches": [
+            "HTTP",
+            "Logs",
+            "Routing"
+          ],
+          "description": "Your first production bug. Learn to read logs and understand HTTP status codes.",
+          "level": "beginner",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "env-variable",
+          "title": "The Missing Environment Variable",
+          "duration": "16 minutes",
+          "durationMinutes": 16,
+          "teaches": [
+            "Environment Variables",
+            "Configuration",
+            "Deployment"
+          ],
+          "description": "Everything worked locally, but production crashes on startup. What went wrong?",
+          "level": "beginner",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "cors-error",
+          "title": "The CORS Error",
+          "duration": "17 minutes",
+          "durationMinutes": 17,
+          "teaches": [
+            "CORS",
+            "HTTP Headers",
+            "Browser Security"
+          ],
+          "description": "Your API works in Postman but not in the browser. Why?",
+          "level": "beginner",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "memory-leak",
+          "title": "The Memory Leak",
+          "duration": "18 minutes",
+          "durationMinutes": 18,
+          "teaches": [
+            "Memory Management",
+            "Event Listeners",
+            "Resource Cleanup"
+          ],
+          "description": "Your server crashes every few hours. Track down the memory leak.",
+          "level": "beginner",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "slow-api",
+          "title": "The Slow API",
+          "duration": "20 minutes",
+          "durationMinutes": 20,
+          "teaches": [
+            "Performance",
+            "Database Queries",
+            "N+1 Problem"
+          ],
+          "description": "Your homepage takes 8 seconds to load. Find and fix the N+1 query problem.",
+          "level": "beginner",
+          "completed": false,
+          "locked": false
+        }
+      ],
+      "stats": {
+        "count": 5,
+        "totalMinutes": 86,
+        "formattedDuration": "1h 26m"
+      }
+    },
+    "intermediate": {
+      "scenarios": [
+        {
+          "id": "failed-deployment",
+          "title": "The Failed Deployment",
+          "duration": "22 minutes",
+          "durationMinutes": 22,
+          "teaches": [
+            "Deployment Strategies",
+            "Rollback Procedures",
+            "Database Migrations"
+          ],
+          "description": "Rolling back the code made things WORSE. The database still has the new schema!",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "rate-limit-cascade",
+          "title": "The Rate Limit Cascade",
+          "duration": "23 minutes",
+          "durationMinutes": 23,
+          "teaches": [
+            "Rate Limiting",
+            "API Dependencies",
+            "Circuit Breakers"
+          ],
+          "description": "Stripe is rate limiting you. User retries make it 8x worse. Stop the cascade!",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "queue-backup",
+          "title": "The Message Queue Backup",
+          "duration": "24 minutes",
+          "durationMinutes": 24,
+          "teaches": [
+            "Message Queues",
+            "Async Processing",
+            "Backpressure"
+          ],
+          "description": "8,000 welcome emails stuck in queue. Users are waiting hours. Scale up!",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "db-pool-exhausted",
+          "title": "Database Connection Pool Exhausted",
+          "duration": "25 minutes",
+          "durationMinutes": 25,
+          "teaches": [
+            "Connection Pooling",
+            "Resource Management",
+            "Database Scaling"
+          ],
+          "description": "Black Friday traffic spike! Your database is idle but all requests timeout. Why?",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "cache-stampede",
+          "title": "The Cache Stampede",
+          "duration": "28 minutes",
+          "durationMinutes": 28,
+          "teaches": [
+            "Caching Strategies",
+            "Cache Invalidation",
+            "Race Conditions"
+          ],
+          "description": "You cleared the cache. Now 10,000 users are hammering your database simultaneously.",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false
+        }
+      ],
+      "stats": {
+        "count": 5,
+        "totalMinutes": 122,
+        "formattedDuration": "2h 2m"
+      }
+    },
+    "advanced": {
+      "scenarios": [
+        {
+          "id": "cloudflare-bgp-hijack",
+          "title": "Cloudflare's BGP Route Leak",
+          "duration": "30 minutes",
+          "durationMinutes": 30,
+          "teaches": [
+            "BGP Routing",
+            "Network Infrastructure",
+            "Global Outages",
+            "Internet Architecture"
+          ],
+          "description": "Small ISP misconfigured BGP. Global traffic routing through Pennsylvania. Internet broken.",
+          "level": "advanced",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "gitlab-data-loss",
+          "title": "GitLab's Accidental Database Deletion",
+          "duration": "30 minutes",
+          "durationMinutes": 30,
+          "teaches": [
+            "Database Replication",
+            "Backup & Recovery",
+            "Human Error Prevention",
+            "Post-Mortems"
+          ],
+          "description": "You just ran rm -rf on production. 276GB deleted. Your backups are broken. Now what?",
+          "level": "advanced",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "discord-redis-failure",
+          "title": "Discord's Redis Cascade Failure",
+          "duration": "32 minutes",
+          "durationMinutes": 32,
+          "teaches": [
+            "Redis Clustering",
+            "Cache Failures",
+            "Circuit Breakers",
+            "Graceful Degradation"
+          ],
+          "description": "@everyone to 5M users. 50K req/sec to one key. Redis melting. No fallback. Cascade!",
+          "level": "advanced",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "aws-cascade-failure",
+          "title": "AWS S3 Cascade Failure",
+          "duration": "33 minutes",
+          "durationMinutes": 33,
+          "teaches": [
+            "Service Dependencies",
+            "Blast Radius",
+            "Circuit Breakers",
+            "Incident Response"
+          ],
+          "description": "Typo removed 500 servers instead of 5. S3 down. Half the internet down. Status page down!",
+          "level": "advanced",
+          "completed": false,
+          "locked": false
+        },
+        {
+          "id": "reddit-k8s-outage",
+          "title": "Reddit's Kubernetes Meltdown",
+          "duration": "35 minutes",
+          "durationMinutes": 35,
+          "teaches": [
+            "Kubernetes",
+            "Auto-scaling",
+            "Resource Limits",
+            "Cascading Failures"
+          ],
+          "description": "Auto-scaler death spiral: 50 healthy pods → 500 crashing pods in 60 seconds. Stop it!",
+          "level": "advanced",
+          "completed": false,
+          "locked": false
+        }
+      ],
+      "stats": {
+        "count": 5,
+        "totalMinutes": 160,
+        "formattedDuration": "2h 40m"
+      }
+    }
+  },
+  "stats": {
+    "totalScenarios": 15,
+    "totalMinutes": 368,
+    "totalHours": 7
+  }
+}
