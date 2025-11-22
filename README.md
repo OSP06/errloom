@@ -250,7 +250,7 @@ Contributions are welcome! Here's how you can help:
 
 ```bash
 # Fork and clone the repository
-git clone https://github.com/yourusername/errloom.git
+git clone https://github.com/OSP06/errloom.git
 
 # Create a feature branch
 git checkout -b feature/your-feature-name
