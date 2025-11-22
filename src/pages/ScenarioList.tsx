@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { CheckCircle, Lock, Play, ArrowLeft, Trophy } from 'lucide-react';
+import { useProgressStore } from '../lib/progressStore';
 
 // Mock data - will be replaced with actual scenario loading
 export const scenarios = {
@@ -165,8 +166,9 @@ export function ScenarioList() {
   const { level } = useParams<{ level: string }>();
   const scenarioList = scenarios[level as keyof typeof scenarios] || [];
   const config = levelConfig[level as keyof typeof levelConfig];
+  const isScenarioComplete = useProgressStore((state) => state.isScenarioComplete);
 
-  const completedCount = scenarioList.filter(s => s.completed).length;
+  const completedCount = scenarioList.filter(s => isScenarioComplete(s.id)).length;
   const progress = (completedCount / scenarioList.length) * 100;
 
   return (
@@ -218,7 +220,7 @@ export function ScenarioList() {
           {scenarioList.map((scenario, index) => (
             <ScenarioCard
               key={scenario.id}
-              scenario={scenario}
+              scenario={{ ...scenario, completed: isScenarioComplete(scenario.id) }}
               level={level!}
               index={index + 1}
               config={config}

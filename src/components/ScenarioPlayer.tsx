@@ -10,6 +10,7 @@ import { CodeEditor } from './CodeEditor';
 import type { Scenario, TaskResult, LogEntry, CodeContent } from '../lib/types';
 import { loadScenario } from '../lib/scenarioLoader';
 import { scenarios } from '../pages/ScenarioList';
+import { useProgressStore } from '../lib/progressStore';
 
 export function ScenarioPlayer() {
   const { level, scenarioId } = useParams();
@@ -21,6 +22,7 @@ export function ScenarioPlayer() {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const markScenarioComplete = useProgressStore((state) => state.markScenarioComplete);
 
   useEffect(() => {
     async function load() {
@@ -47,6 +49,10 @@ export function ScenarioPlayer() {
         setTimeout(() => setCurrentTask(currentTask + 1), 1000);
       } else {
         setCompleted(true);
+        // Mark scenario as complete
+        if (scenario) {
+          markScenarioComplete(scenario.id);
+        }
         const timer = document.querySelector('[data-timer]');
         if (timer) {
           const seconds = parseInt(timer.getAttribute('data-seconds') || '0');
