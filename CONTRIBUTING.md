@@ -141,7 +141,7 @@ Before submitting:
 
 ```bash
 # Fork the repository on GitHub
-# Clone your fork
+# Clone your fork by using your username
 git clone https://github.com/YOUR_USERNAME/errloom.git
 cd errloom
 
