@@ -177,21 +177,28 @@ errloom/
 └── tsconfig.json
 ```
 
-## 📝 Creating New Scenarios
+## 📝 Contributing New Scenarios
 
-Scenarios are defined in YAML files under `public/scenarios/{level}/`. Here's the structure:
+**Easy Contribution Process**: Just add a YAML file! The scenario manifest auto-generates during build.
+
+### Step 1: Create Your YAML File
+
+Create a new file in `public/scenarios/{level}/{your-scenario-id}.yaml`:
 
 ```yaml
-id: "scenario-id"
-level: "beginner"
-title: "Scenario Title"
-duration: "15 minutes"
+id: "your-scenario-id"              # Must match filename (without .yaml)
+level: "beginner"                   # beginner | intermediate | advanced
+title: "Your Scenario Title"
+duration: "20 minutes"               # Estimated completion time
+description: "Brief one-line description for the scenario list"  # REQUIRED
 teaches:
   - "Concept 1"
   - "Concept 2"
+  - "Concept 3"
 
 context: |
   Background story and setup for the scenario...
+  Explain the situation the user is facing.
 
 tabs:
   - name: "Error"
@@ -205,12 +212,12 @@ tabs:
       - time: "10:23:45"
         level: "ERROR"
         message: "Error description"
-        is_answer: true
+        is_answer: true              # Marks critical log entries
 
   - name: "Code"
     type: "code"
     content:
-      language: "javascript"
+      language: "javascript"         # javascript | python | yaml | etc.
       content: |
         // Code snippet
 
@@ -221,17 +228,79 @@ tasks:
       - "Option 1"
       - "Option 2"
       - "Correct answer"
-    correct: 2
+    correct: 2                       # 0-based index
     explanation: |
       Explanation of the correct answer...
 
+  - type: "code-fix"
+    instructions: "Fix the code below"
+    starting_code: |
+      // Broken code here
+    validation:
+      must_contain:
+        - "required string 1"
+        - "required string 2"
+    solution: |
+      // Fixed code here
+    explanation: |
+      Explanation of the fix...
+
 completion:
   summary: |
-    What the user learned...
+    # What You Learned
+    Summary of key concepts...
   resources:
     - title: "Resource Title"
       url: "https://example.com"
+
+# Optional: For real incident scenarios
+real_incident:
+  company: "Company Name"
+  date: "YYYY-MM-DD"
+  duration: "X hours"
+  impact: "Impact description"
+  cause: "Root cause"
+  story: "Detailed story of the incident"
 ```
+
+### Step 2: That's It!
+
+**No code changes needed!** When you run `npm run build`, the manifest automatically:
+- Discovers your new scenario
+- Extracts metadata (id, title, description, duration, teaches)
+- Generates `public/scenarios/index.json`
+- Updates scenario counts and durations on the landing page
+
+### Step 3: Test Locally
+
+```bash
+# Generate manifest manually (optional - build does this automatically)
+npm run generate-manifest
+
+# Start dev server
+npm run dev
+
+# Your scenario will appear in the appropriate level!
+```
+
+### Validation Checklist
+
+Before submitting your scenario:
+
+- [ ] `id` matches filename (without .yaml extension)
+- [ ] `description` field is present (required for scenario list)
+- [ ] `duration` is realistic (test your scenario)
+- [ ] `teaches` array has 2-4 clear concepts
+- [ ] All `must_contain` strings appear in your `solution`
+- [ ] `explanation` fields are helpful and educational
+- [ ] Test the scenario end-to-end
+
+### Example Scenarios
+
+See existing scenarios for reference:
+- **Beginner**: [404-error.yaml](public/scenarios/beginner/404-error.yaml)
+- **Intermediate**: [cache-stampede.yaml](public/scenarios/intermediate/cache-stampede.yaml)
+- **Advanced**: [reddit-k8s-outage.yaml](public/scenarios/advanced/reddit-k8s-outage.yaml)
 
 ## 🛠️ Tech Stack
 
