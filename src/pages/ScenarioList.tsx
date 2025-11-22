@@ -1,8 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
 import { CheckCircle, Lock, Play, ArrowLeft, Trophy } from 'lucide-react';
 import { useProgressStore } from '../lib/progressStore';
+import { useState, useEffect } from 'react';
+import { getScenariosByLevel, type ScenarioMetadata } from '../lib/manifestLoader';
 
-// Mock data - will be replaced with actual scenario loading
+// Legacy export for backward compatibility with ScenarioPlayer
 export const scenarios = {
   beginner: [
     {
@@ -164,9 +166,53 @@ const levelConfig = {
 
 export function ScenarioList() {
   const { level } = useParams<{ level: string }>();
-  const scenarioList = scenarios[level as keyof typeof scenarios] || [];
+  const [scenarioList, setScenarioList] = useState<ScenarioMetadata[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const config = levelConfig[level as keyof typeof levelConfig];
   const isScenarioComplete = useProgressStore((state) => state.isScenarioComplete);
+
+  useEffect(() => {
+    async function loadScenarios() {
+      try {
+        setLoading(true);
+        const scenarios = await getScenariosByLevel(level!);
+        setScenarioList(scenarios);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load scenarios');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (level) {
+      loadScenarios();
+    }
+  }, [level]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading scenarios...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !scenarioList.length) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">{error || 'No scenarios found'}</p>
+          <Link to="/" className="text-orange-500 hover:underline">
+            ← Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const completedCount = scenarioList.filter(s => isScenarioComplete(s.id)).length;
   const progress = (completedCount / scenarioList.length) * 100;

@@ -1,7 +1,21 @@
 import { Link } from 'react-router-dom';
 import { BookOpen, Zap, Flame, Code, Clock, Trophy, Target, CheckCircle, Github } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { loadManifest, type Manifest } from '../lib/manifestLoader';
 
 export function Landing() {
+  const [manifest, setManifest] = useState<Manifest | null>(null);
+
+  useEffect(() => {
+    loadManifest().then(setManifest).catch(console.error);
+  }, []);
+
+  const totalScenarios = manifest?.stats.totalScenarios || 15;
+  const totalHours = manifest?.stats.totalHours || 7;
+  const beginnerStats = manifest?.levels.beginner.stats.formattedDuration || '1h 26m';
+  const intermediateStats = manifest?.levels.intermediate.stats.formattedDuration || '2h 2m';
+  const advancedStats = manifest?.levels.advanced.stats.formattedDuration || '2h 40m';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
       {/* Hero Section */}
@@ -28,8 +42,8 @@ export function Landing() {
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-16">
-            <StatCard icon={<Target className="w-6 h-6" />} value="15" label="Scenarios" />
-            <StatCard icon={<Clock className="w-6 h-6" />} value="6+" label="Hours" />
+            <StatCard icon={<Target className="w-6 h-6" />} value={totalScenarios.toString()} label="Scenarios" />
+            <StatCard icon={<Clock className="w-6 h-6" />} value={`${totalHours}+`} label="Hours" />
             <StatCard icon={<Trophy className="w-6 h-6" />} value="100%" label="Free" />
             <StatCard icon={<Code className="w-6 h-6" />} value="Real" label="Incidents" />
           </div>
@@ -100,7 +114,7 @@ export function Landing() {
               'CORS issues',
               'Environment variables'
             ]}
-            stats="5 scenarios • ~86 minutes"
+            stats={`5 scenarios • ~${beginnerStats}`}
             difficulty="Easy"
           />
 
@@ -118,7 +132,7 @@ export function Landing() {
               'Message queue backups',
               'Rate limit cascades'
             ]}
-            stats="5 scenarios • ~122 minutes"
+            stats={`5 scenarios • ~${intermediateStats}`}
             difficulty="Medium"
           />
 
@@ -136,7 +150,7 @@ export function Landing() {
               'AWS S3 cascade',
               'Cloudflare BGP hijack'
             ]}
-            stats="5 scenarios • ~160 minutes"
+            stats={`5 scenarios • ~${advancedStats}`}
             difficulty="Hard"
             badge="Real Incidents"
           />

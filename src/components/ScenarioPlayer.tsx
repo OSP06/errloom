@@ -9,7 +9,7 @@ import { TabNavigation } from './TabNavigation';
 import { CodeEditor } from './CodeEditor';
 import type { Scenario, TaskResult, LogEntry, CodeContent } from '../lib/types';
 import { loadScenario } from '../lib/scenarioLoader';
-import { scenarios } from '../pages/ScenarioList';
+import { getNextScenario as getNextScenarioFromManifest } from '../lib/manifestLoader';
 import { useProgressStore } from '../lib/progressStore';
 
 export function ScenarioPlayer() {
@@ -232,21 +232,13 @@ function CompletionScreen({
   timeElapsed: number;
 }) {
   const navigate = useNavigate();
+  const [nextScenario, setNextScenario] = useState<{ id: string; title: string } | null>(null);
 
-  // Find next scenario
-  const getNextScenario = () => {
-    const levelScenarios = scenarios[scenario.level as keyof typeof scenarios];
-    if (!levelScenarios) return null;
-
-    const currentIndex = levelScenarios.findIndex((s) => s.id === scenario.id);
-    if (currentIndex === -1 || currentIndex === levelScenarios.length - 1) {
-      return null; // No next scenario in this level
-    }
-
-    return levelScenarios[currentIndex + 1];
-  };
-
-  const nextScenario = getNextScenario();
+  useEffect(() => {
+    getNextScenarioFromManifest(scenario.level, scenario.id)
+      .then(setNextScenario)
+      .catch(console.error);
+  }, [scenario.level, scenario.id]);
 
   const handleNextScenario = () => {
     if (nextScenario) {
