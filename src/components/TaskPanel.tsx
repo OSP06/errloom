@@ -158,7 +158,6 @@ function CodeFixTaskComponent({
 
 function FindInLogsTaskComponent({
   task,
-  onComplete,
   result
 }: {
   task: FindInLogsTask;

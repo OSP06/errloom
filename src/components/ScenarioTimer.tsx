@@ -6,9 +6,9 @@ interface ScenarioTimerProps {
   onComplete?: (time: number) => void;
 }
 
-export function ScenarioTimer({ targetTime, onComplete }: ScenarioTimerProps) {
+export function ScenarioTimer({ targetTime }: ScenarioTimerProps) {
   const [seconds, setSeconds] = useState(0);
-  const [isRunning, setIsRunning] = useState(true);
+  const [isRunning] = useState(true);
 
   useEffect(() => {
     if (!isRunning) return;
