@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Clock, Trophy, Target } from 'lucide-react';
+import { Trophy, Target } from 'lucide-react';
 
 interface ScenarioTimerProps {
   targetTime: string;

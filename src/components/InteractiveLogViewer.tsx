@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, Copy, CheckCircle, AlertTriangle, Info } from 'lucide-react';
+import { Search, Copy, CheckCircle } from 'lucide-react';
 import type { LogEntry } from '../lib/types';
 import { TerminalWindow } from './TerminalWindow';
 
@@ -44,20 +44,6 @@ export function InteractiveLogViewer({ logs, onLogSelect }: InteractiveLogViewer
         return 'text-terminal-cyan';
       default:
         return 'text-gray-400';
-    }
-  };
-
-  const getLevelIcon = (level: string) => {
-    switch (level) {
-      case 'ERROR':
-      case 'FATAL':
-        return <AlertTriangle className="w-4 h-4" />;
-      case 'WARN':
-        return <AlertTriangle className="w-4 h-4" />;
-      case 'INFO':
-        return <Info className="w-4 h-4" />;
-      default:
-        return null;
     }
   };
 
