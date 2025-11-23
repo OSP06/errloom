@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { BookOpen, Zap, Flame, Code, Clock, Trophy, Target, CheckCircle, FileCode, Server } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { loadManifest, type Manifest } from '../lib/manifestLoader';
+import { ErrloomIcon } from '../components/icons/ErrloomIcon';
 
 export function Landing() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
@@ -27,8 +28,8 @@ export function Landing() {
         <div className="relative max-w-7xl mx-auto px-4 py-20">
           {/* Logo & Title */}
           <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-linear-to-br from-orange-500 to-red-600 rounded-2xl mb-6 shadow-2xl">
-              <Flame className="w-10 h-10 text-white" />
+            <div className="inline-flex items-center justify-center w-28 h-28 bg-transparent rounded-2xl mb-6">
+              <ErrloomIcon size={96} strokeWidth={2} />
             </div>
             <h1 className="text-6xl md:text-7xl font-bold font-mono mb-6 bg-linear-to-r from-orange-400 via-red-500 to-purple-600 bg-clip-text text-transparent">
               Errloom
