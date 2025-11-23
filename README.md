@@ -685,7 +685,7 @@ If you find this project helpful, please consider:
 For questions, suggestions, or feedback:
 
 - Open an issue on GitHub
-- Email:ompateldev06@gmail.com
+- Email:ompatelpr@gmail.com
 
 ---
 
