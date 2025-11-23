@@ -196,7 +196,7 @@ export function ScenarioPlayer() {
   );
 }
 
-function TabContent({ tab }: { tab: any }) {
+function TabContent({ tab }: { tab: Tab }) {
   if (tab.type === 'logs') {
     return <InteractiveLogViewer logs={tab.content as LogEntry[]} />;
   }

@@ -10,7 +10,7 @@ export async function loadScenario(level: string, scenarioId: string): Promise<S
     }
 
     const yamlText = await response.text();
-    const data = yaml.load(yamlText) as any;
+    const data = yaml.load(yamlText) as unknown;
 
     return data as Scenario;
   } catch (error) {
