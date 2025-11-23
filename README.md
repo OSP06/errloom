@@ -24,10 +24,12 @@ Errloom is an interactive learning platform that teaches developers how to debug
 
 <div align="center">
 
-![Errloom Hero](./public/assets/marketing/screenshot-hero.png)
+![Errloom Hero](./public/assets/marketing/Landing-Page.png)
 *Interactive debugging scenarios with real production outage examples*
 
-![Scenario Player](./public/assets/marketing/screenshot-scenario.png)
+![Scenario Player](./public/assets/marketing/Scenario.png)
+![](./public/assets/marketing/Scenario-play.png)
+![](./public/assets/marketing/monacoeditor.png)
 *Step-by-step guided debugging with code editor, logs, and interactive tasks*
 
 ![Demo](./public/assets/marketing/demo.gif)
