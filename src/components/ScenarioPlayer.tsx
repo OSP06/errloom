@@ -7,7 +7,7 @@ import { ScenarioTimer, PerformanceSummary } from './ScenarioTimer';
 import { TaskPanel } from './TaskPanel';
 import { TabNavigation } from './TabNavigation';
 import { CodeEditor } from './CodeEditor';
-import type { Scenario, TaskResult, LogEntry, CodeContent } from '../lib/types';
+import type { Scenario, TaskResult, LogEntry, CodeContent, Tab } from '../lib/types';
 import { loadScenario } from '../lib/scenarioLoader';
 import { getNextScenario as getNextScenarioFromManifest } from '../lib/manifestLoader';
 import { useProgressStore } from '../lib/progressStore';
