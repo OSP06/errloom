@@ -1,0 +1,111 @@
+name: New Scenario Proposal
+description: Propose a new debugging scenario
+title: "[Scenario]: "
+labels: ["scenario", "good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a new scenario! This helps grow the learning content.
+
+  - type: input
+    id: title
+    attributes:
+      label: Scenario Title
+      description: What's the scenario called?
+      placeholder: "e.g., The Database Connection Pool Leak"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: level
+    attributes:
+      label: Difficulty Level
+      description: What difficulty level is this scenario?
+      options:
+        - Beginner
+        - Intermediate
+        - Advanced
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Scenario Description
+      description: Brief overview of what the scenario teaches
+      placeholder: Learn how to debug connection pool exhaustion when your application suddenly starts timing out on database queries despite the database being healthy.
+    validations:
+      required: true
+
+  - type: textarea
+    id: concepts
+    attributes:
+      label: Key Concepts
+      description: What concepts does this scenario teach? (2-4 concepts)
+      placeholder: |
+        - Connection pooling
+        - Resource management
+        - Database monitoring
+        - Timeout configuration
+    validations:
+      required: true
+
+  - type: textarea
+    id: story
+    attributes:
+      label: Scenario Story
+      description: The narrative/context for the scenario
+      placeholder: It's Black Friday. Traffic is up 10x. All your API endpoints are returning 504 Gateway Timeout errors. Your database CPU is at 5%. What's going on?
+    validations:
+      required: true
+
+  - type: input
+    id: duration
+    attributes:
+      label: Estimated Duration
+      description: How long should this scenario take?
+      placeholder: "e.g., 25 minutes"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: real_incident
+    attributes:
+      label: Is this based on a real incident?
+      description: Is this inspired by an actual production outage?
+      options:
+        - "No"
+        - "Yes - I have documentation"
+        - "Yes - but needs research"
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Proposed Tasks
+      description: What tasks/challenges should learners complete?
+      placeholder: |
+        1. Multiple choice: Identify the likely cause from logs
+        2. Code fix: Implement connection pool limits
+        3. Find in logs: Identify the warning that predicted this issue
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution Status
+      description: Are you planning to contribute this scenario?
+      options:
+        - label: I want to create this scenario myself
+        - label: I'm just proposing the idea for someone else to implement
+        - label: I can help with research/documentation
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: Reference Materials
+      description: Any postmortems, blog posts, or docs that inspired this?
+      placeholder: |
+        - https://blog.example.com/postmortem-connection-pool
+        - https://docs.example.com/database-pooling

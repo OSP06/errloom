@@ -1,7 +1,38 @@
 {
   "name": "errloom",
-  "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Master production debugging through interactive scenarios. Learn from real outages at Reddit, GitLab, Discord, AWS, and Cloudflare.",
+  "keywords": [
+    "debugging",
+    "production",
+    "outage",
+    "sre",
+    "devops",
+    "learning",
+    "interactive",
+    "tutorial",
+    "scenarios",
+    "react",
+    "typescript",
+    "educational",
+    "incidents",
+    "postmortem",
+    "reliability",
+    "monitoring",
+    "troubleshooting",
+    "hands-on"
+  ],
+  "author": "Om Patel <ompateldev06@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OSP06/errloom.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OSP06/errloom/issues"
+  },
+  "homepage": "https://errloom.dev",
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "vite",

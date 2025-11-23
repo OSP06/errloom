@@ -1,0 +1,284 @@
+name: Validate Scenarios
+
+on:
+  pull_request:
+    paths:
+      - 'public/scenarios/**/*.yaml'
+      - 'scenarios/templates/**/*.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'public/scenarios/**/*.yaml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for comparing changes
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml yamllint jsonschema
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Run YAML linting
+        run: |
+          yamllint -d "{extends: default, rules: {line-length: {max: 120}, comments: {min-spaces-from-content: 1}}}" public/scenarios/ || true
+        continue-on-error: true
+
+      - name: Get changed scenario files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # For PRs, get changed files
+            git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep "public/scenarios/.*\.yaml$" > changed_scenarios.txt || echo "" > changed_scenarios.txt
+          else
+            # For pushes to main, validate all scenarios
+            find public/scenarios -name "*.yaml" -type f > changed_scenarios.txt
+          fi
+          echo "Found $(wc -l < changed_scenarios.txt) scenario files to validate"
+          cat changed_scenarios.txt
+
+      - name: Validate scenario YAML files
+        id: validate
+        run: |
+          python3 << 'PYTHON_SCRIPT'
+          import yaml
+          import sys
+          import os
+          from pathlib import Path
+
+          errors = []
+          warnings = []
+          success_count = 0
+
+          # Required fields for scenarios
+          REQUIRED_FIELDS = [
+              'id', 'level', 'title', 'duration', 'description',
+              'teaches', 'context', 'tabs', 'tasks', 'completion'
+          ]
+
+          VALID_LEVELS = ['beginner', 'intermediate', 'advanced']
+          VALID_TASK_TYPES = ['multiple-choice', 'code-fix', 'find-in-logs']
+          VALID_TAB_TYPES = ['text', 'logs', 'code']
+
+          def validate_scenario(file_path):
+              """Validate a single scenario YAML file"""
+              local_errors = []
+              local_warnings = []
+
+              # Read and parse YAML
+              try:
+                  with open(file_path, 'r') as f:
+                      data = yaml.safe_load(f)
+              except yaml.YAMLError as e:
+                  return [f"{file_path}: YAML syntax error - {e}"], []
+              except Exception as e:
+                  return [f"{file_path}: Failed to read file - {e}"], []
+
+              if not isinstance(data, dict):
+                  return [f"{file_path}: YAML must be a dictionary"], []
+
+              # Check required fields
+              missing_fields = [field for field in REQUIRED_FIELDS if field not in data]
+              if missing_fields:
+                  local_errors.append(f"{file_path}: Missing required fields: {', '.join(missing_fields)}")
+
+              # Validate ID matches filename
+              filename = Path(file_path).stem
+              if 'id' in data and data['id'] != filename:
+                  local_errors.append(f"{file_path}: ID '{data['id']}' doesn't match filename '{filename}'")
+
+              # Validate level
+              if 'level' in data:
+                  if data['level'] not in VALID_LEVELS:
+                      local_errors.append(f"{file_path}: Invalid level '{data['level']}'. Must be one of: {', '.join(VALID_LEVELS)}")
+
+                  # Check if level matches directory
+                  path_parts = Path(file_path).parts
+                  if 'scenarios' in path_parts:
+                      idx = path_parts.index('scenarios')
+                      if idx + 1 < len(path_parts):
+                          dir_level = path_parts[idx + 1]
+                          if dir_level in VALID_LEVELS and dir_level != data['level']:
+                              local_errors.append(f"{file_path}: Level '{data['level']}' doesn't match directory '{dir_level}'")
+
+              # Validate teaches array
+              if 'teaches' in data:
+                  if not isinstance(data['teaches'], list):
+                      local_errors.append(f"{file_path}: 'teaches' must be an array")
+                  elif len(data['teaches']) < 2:
+                      local_warnings.append(f"{file_path}: 'teaches' should have at least 2 concepts")
+                  elif len(data['teaches']) > 4:
+                      local_warnings.append(f"{file_path}: 'teaches' should have no more than 4 concepts")
+
+              # Validate tabs
+              if 'tabs' in data:
+                  if not isinstance(data['tabs'], list):
+                      local_errors.append(f"{file_path}: 'tabs' must be an array")
+                  elif len(data['tabs']) == 0:
+                      local_errors.append(f"{file_path}: At least one tab is required")
+                  else:
+                      for i, tab in enumerate(data['tabs']):
+                          if not isinstance(tab, dict):
+                              local_errors.append(f"{file_path}: Tab {i+1} must be a dictionary")
+                              continue
+                          if 'name' not in tab:
+                              local_errors.append(f"{file_path}: Tab {i+1} missing 'name' field")
+                          if 'type' not in tab:
+                              local_errors.append(f"{file_path}: Tab {i+1} missing 'type' field")
+                          elif tab['type'] not in VALID_TAB_TYPES:
+                              local_errors.append(f"{file_path}: Tab {i+1} has invalid type '{tab['type']}'")
+                          if 'content' not in tab:
+                              local_errors.append(f"{file_path}: Tab {i+1} missing 'content' field")
+
+              # Validate tasks
+              if 'tasks' in data:
+                  if not isinstance(data['tasks'], list):
+                      local_errors.append(f"{file_path}: 'tasks' must be an array")
+                  elif len(data['tasks']) == 0:
+                      local_errors.append(f"{file_path}: At least one task is required")
+                  else:
+                      for i, task in enumerate(data['tasks']):
+                          if not isinstance(task, dict):
+                              local_errors.append(f"{file_path}: Task {i+1} must be a dictionary")
+                              continue
+
+                          if 'type' not in task:
+                              local_errors.append(f"{file_path}: Task {i+1} missing 'type' field")
+                          elif task['type'] not in VALID_TASK_TYPES:
+                              local_errors.append(f"{file_path}: Task {i+1} has invalid type '{task['type']}'")
+
+                          # Validate task-specific fields
+                          task_type = task.get('type')
+
+                          if task_type == 'multiple-choice':
+                              if 'question' not in task:
+                                  local_errors.append(f"{file_path}: Task {i+1} (multiple-choice) missing 'question'")
+                              if 'options' not in task:
+                                  local_errors.append(f"{file_path}: Task {i+1} (multiple-choice) missing 'options'")
+                              elif not isinstance(task['options'], list) or len(task['options']) < 2:
+                                  local_errors.append(f"{file_path}: Task {i+1} (multiple-choice) needs at least 2 options")
+                              if 'correct' not in task:
+                                  local_errors.append(f"{file_path}: Task {i+1} (multiple-choice) missing 'correct' index")
+                              elif 'options' in task and isinstance(task['options'], list):
+                                  if task['correct'] >= len(task['options']):
+                                      local_errors.append(f"{file_path}: Task {i+1} (multiple-choice) 'correct' index out of range")
+                              if 'explanation' not in task:
+                                  local_warnings.append(f"{file_path}: Task {i+1} (multiple-choice) missing 'explanation'")
+
+                          elif task_type == 'code-fix':
+                              if 'instructions' not in task:
+                                  local_errors.append(f"{file_path}: Task {i+1} (code-fix) missing 'instructions'")
+                              if 'starting_code' not in task:
+                                  local_errors.append(f"{file_path}: Task {i+1} (code-fix) missing 'starting_code'")
+                              if 'solution' not in task:
+                                  local_errors.append(f"{file_path}: Task {i+1} (code-fix) missing 'solution'")
+
+                              # Validate must_contain strings actually appear in solution
+                              if 'validation' in task and isinstance(task['validation'], dict):
+                                  if 'must_contain' in task['validation']:
+                                      must_contain = task['validation']['must_contain']
+                                      solution = task.get('solution', '')
+                                      if isinstance(must_contain, list):
+                                          for string in must_contain:
+                                              if string not in solution:
+                                                  local_errors.append(f"{file_path}: Task {i+1} validation string '{string}' not found in solution")
+
+                              if 'explanation' not in task:
+                                  local_warnings.append(f"{file_path}: Task {i+1} (code-fix) missing 'explanation'")
+
+                          elif task_type == 'find-in-logs':
+                              if 'instructions' not in task:
+                                  local_errors.append(f"{file_path}: Task {i+1} (find-in-logs) missing 'instructions'")
+                              if 'explanation' not in task:
+                                  local_warnings.append(f"{file_path}: Task {i+1} (find-in-logs) missing 'explanation'")
+
+              # Validate completion
+              if 'completion' in data:
+                  if not isinstance(data['completion'], dict):
+                      local_errors.append(f"{file_path}: 'completion' must be a dictionary")
+                  elif 'summary' not in data['completion']:
+                      local_errors.append(f"{file_path}: 'completion' missing 'summary' field")
+
+              return local_errors, local_warnings
+
+          # Read the list of files to validate
+          with open('changed_scenarios.txt', 'r') as f:
+              files = [line.strip() for line in f if line.strip()]
+
+          if not files:
+              print("✅ No scenario files to validate")
+              sys.exit(0)
+
+          print(f"Validating {len(files)} scenario file(s)...\n")
+
+          for file_path in files:
+              if not os.path.exists(file_path):
+                  errors.append(f"{file_path}: File not found")
+                  continue
+
+              file_errors, file_warnings = validate_scenario(file_path)
+              errors.extend(file_errors)
+              warnings.extend(file_warnings)
+
+              if not file_errors:
+                  success_count += 1
+                  print(f"✅ {file_path}")
+              else:
+                  print(f"❌ {file_path}")
+
+          # Print summary
+          print(f"\n{'='*60}")
+          print(f"Validation Summary:")
+          print(f"  Total files: {len(files)}")
+          print(f"  ✅ Valid: {success_count}")
+          print(f"  ❌ Errors: {len(errors)}")
+          print(f"  ⚠️  Warnings: {len(warnings)}")
+          print(f"{'='*60}\n")
+
+          # Print errors
+          if errors:
+              print("Errors:")
+              for error in errors:
+                  print(f"  ❌ {error}")
+              print()
+
+          # Print warnings
+          if warnings:
+              print("Warnings:")
+              for warning in warnings:
+                  print(f"  ⚠️  {warning}")
+              print()
+
+          # Exit with error code if there are errors
+          if errors:
+              sys.exit(1)
+          else:
+              print("✅ All scenario files are valid!")
+              sys.exit(0)
+          PYTHON_SCRIPT
+
+      - name: Comment on PR
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Scenario Validation Failed**\n\nPlease check the workflow logs for details on validation errors.\n\n**Common issues:**\n- Missing required fields (id, level, title, duration, description, teaches, context, tabs, tasks, completion)\n- ID doesn\'t match filename\n- Level doesn\'t match directory\n- Invalid task types or missing task fields\n- Validation strings in `must_contain` not found in solution\n\nRefer to [scenarios/templates/README.md](https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/blob/main/scenarios/templates/README.md) for guidance.'
+            })

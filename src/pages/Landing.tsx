@@ -18,42 +18,6 @@ export function Landing() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      {/* Floating Banners */}
-      <div className="fixed top-20 right-4 z-40 flex flex-col gap-3">
-        <a
-          href="https://github.com/OSP06/errloom"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group bg-gray-800/95 backdrop-blur-sm border-2 border-gray-700 hover:border-orange-500 rounded-lg p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-linear-to-br from-orange-500 to-red-600 rounded-lg">
-              <FileCode className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="font-mono font-bold text-sm text-white">View Source Code</div>
-              <div className="font-mono text-xs text-gray-400">MIT License</div>
-            </div>
-          </div>
-        </a>
-
-        <a
-          href="https://github.com/OSP06/errloom#self-hosting"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group bg-gray-800/95 backdrop-blur-sm border-2 border-gray-700 hover:border-green-500 rounded-lg p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-linear-to-br from-green-500 to-emerald-600 rounded-lg">
-              <Server className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="font-mono font-bold text-sm text-white">Self-Host Errloom</div>
-              <div className="font-mono text-xs text-gray-400">Free Forever</div>
-            </div>
-          </div>
-        </a>
-      </div>
 
       {/* Hero Section */}
       <div className="relative overflow-hidden">
@@ -103,7 +67,7 @@ export function Landing() {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
             <button
               onClick={() => {
                 const element = document.getElementById('choose-level');
@@ -121,6 +85,43 @@ export function Landing() {
             >
               <Code className="w-5 h-5" />
               Contribute
+            </a>
+          </div>
+
+          {/* Prominent Feature Banners - Centered */}
+          <div className="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto mb-16">
+            <a
+              href="https://github.com/OSP06/errloom"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-gray-800/95 backdrop-blur-sm border-2 border-gray-700 hover:border-orange-500 rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-linear-to-br from-orange-500 to-red-600 rounded-lg shrink-0">
+                  <FileCode className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-left">
+                  <div className="font-mono font-bold text-lg text-white">View Source Code</div>
+                  <div className="font-mono text-sm text-gray-400">MIT License • Open Source</div>
+                </div>
+              </div>
+            </a>
+
+            <a
+              href="https://github.com/OSP06/errloom#deployment"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-gray-800/95 backdrop-blur-sm border-2 border-gray-700 hover:border-green-500 rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-linear-to-br from-green-500 to-emerald-600 rounded-lg shrink-0">
+                  <Server className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-left">
+                  <div className="font-mono font-bold text-lg text-white">Self-Host Errloom</div>
+                  <div className="font-mono text-sm text-gray-400">Deploy Your Own Scenario • Free Forever</div>
+                </div>
+              </div>
             </a>
           </div>
         </div>
@@ -141,8 +142,8 @@ export function Landing() {
             icon="🎮"
           />
           <FeatureCard
-            title="No Setup Required"
-            description="100% browser-based. No cloud, no backend, no installation needed"
+            title="Add your Own Scenarios"
+            description="Open source platform—contribute and share your own debugging challenges"
             icon="⚡"
           />
         </div>
@@ -320,7 +321,7 @@ function LevelCard({ icon, level, color, title, subtitle, features, stats, diffi
         <ul className="space-y-3 mb-6">
           {features.map((feature, i) => (
             <li key={i} className="flex items-start gap-2 text-gray-300">
-              <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+              <CheckCircle className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
               <span className="text-sm">{feature}</span>
             </li>
           ))}
@@ -342,7 +343,7 @@ function LevelCard({ icon, level, color, title, subtitle, features, stats, diffi
 function SkillItem({ skill }: { skill: string }) {
   return (
     <div className="flex items-start gap-3 bg-gray-900 p-4 rounded-lg border border-gray-800">
-      <CheckCircle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
+      <CheckCircle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
       <span className="text-gray-300">{skill}</span>
     </div>
   );

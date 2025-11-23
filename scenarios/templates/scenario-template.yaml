@@ -1,0 +1,173 @@
+# Errloom Scenario Template
+# Copy this file to public/scenarios/{level}/{your-scenario-id}.yaml
+# Replace all placeholder values with your content
+
+id: "your-scenario-id"              # REQUIRED: Must match filename (without .yaml)
+level: "beginner"                   # REQUIRED: beginner | intermediate | advanced
+title: "Your Scenario Title"        # REQUIRED: Display name
+duration: "20 minutes"              # REQUIRED: Estimated completion time
+description: "Brief one-line description for the scenario list"  # REQUIRED
+
+teaches:                            # REQUIRED: 2-4 key concepts
+  - "Concept 1"
+  - "Concept 2"
+  - "Concept 3"
+
+context: |                          # REQUIRED: Background story and setup
+  You're a backend engineer at TechCorp. It's 2:00 AM and you get a page:
+  "API errors spiking - 50% of requests failing!"
+
+  Your homepage is broken. Users are complaining. Your manager is awake.
+  You need to find and fix the issue FAST.
+
+  Let's debug this production outage together.
+
+tabs:                               # REQUIRED: At least one tab
+  - name: "Error Message"           # Tab 1: Show the error
+    type: "text"
+    content: |
+      Error 500: Internal Server Error
+
+      Stack trace:
+      TypeError: Cannot read property 'id' of undefined
+      at getUserProfile (app.js:42)
+      at processRequest (app.js:18)
+
+  - name: "Server Logs"             # Tab 2: Interactive logs
+    type: "logs"
+    content:
+      - time: "02:03:15"
+        level: "INFO"
+        message: "Server started on port 3000"
+
+      - time: "02:05:42"
+        level: "WARN"
+        message: "Database connection pool at 90% capacity"
+
+      - time: "02:06:13"
+        level: "ERROR"
+        message: "Failed to fetch user data: Connection timeout"
+        is_answer: true             # Mark critical logs for finding
+
+      - time: "02:06:14"
+        level: "ERROR"
+        message: "TypeError: Cannot read property 'id' of undefined"
+        is_answer: true
+
+  - name: "Code"                    # Tab 3: Code snippet
+    type: "code"
+    content:
+      language: "javascript"        # javascript | python | yaml | go | rust | etc.
+      content: |
+        async function getUserProfile(userId) {
+          const user = await db.users.findOne({ id: userId });
+          return {
+            id: user.id,           // BUG: user might be null!
+            name: user.name,
+            email: user.email
+          };
+        }
+
+tasks:                              # REQUIRED: At least one task
+  - type: "multiple-choice"
+    question: "What's the root cause of the error?"
+    options:
+      - "The database is down"
+      - "The server ran out of memory"
+      - "The code doesn't handle null user objects"
+      - "The API endpoint is incorrectly configured"
+    correct: 2                      # 0-based index
+    explanation: |
+      Correct! The error occurs when `user` is null or undefined.
+      The code tries to access `user.id` without checking if the user exists.
+
+      This is a common bug when database queries fail or return no results.
+
+  - type: "code-fix"
+    instructions: |
+      Fix the code to handle cases where the user doesn't exist.
+      Add proper null checking and return an appropriate error.
+    starting_code: |
+      async function getUserProfile(userId) {
+        const user = await db.users.findOne({ id: userId });
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email
+        };
+      }
+    validation:
+      must_contain:                 # All these strings must appear in solution
+        - "if"                      # Check for conditional
+        - "null"                    # Check for null handling
+        - "throw"                   # Check for error throwing
+      must_not_contain:             # Optional: strings that shouldn't appear
+        - "TODO"
+    solution: |
+      async function getUserProfile(userId) {
+        const user = await db.users.findOne({ id: userId });
+
+        if (!user) {
+          throw new Error(`User ${userId} not found`);
+        }
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email
+        };
+      }
+    explanation: |
+      Great job! You added null checking before accessing user properties.
+
+      Key lessons:
+      1. Always validate database query results
+      2. Return clear error messages
+      3. Fail fast to prevent cascading errors
+
+  - type: "find-in-logs"            # Log analysis task
+    instructions: |
+      Look through the server logs and find the warning that predicted this issue.
+      What log entry gave us an early warning sign?
+    explanation: |
+      The warning "Database connection pool at 90% capacity" was an early signal.
+      This suggested the database was under stress, which likely caused some
+      queries to timeout and return null results.
+
+completion:                         # REQUIRED: Summary and resources
+  summary: |
+    # 🎉 Congratulations!
+
+    You've debugged a classic null pointer error and learned:
+
+    ## Key Takeaways
+
+    1. **Always validate inputs** - Never assume database queries succeed
+    2. **Null checking** - Check for null/undefined before accessing properties
+    3. **Read warning signs** - Connection pool warnings predict failures
+    4. **Fail fast** - Throw clear errors instead of cascading failures
+
+    ## Prevention Tips
+
+    - Use optional chaining (`user?.id`) in JavaScript/TypeScript
+    - Add database query timeout monitoring
+    - Set up alerts for connection pool capacity
+    - Use TypeScript for compile-time null checks
+
+  resources:                        # Optional: Learning resources
+    - title: "Defensive Programming Best Practices"
+      url: "https://example.com/defensive-programming"
+    - title: "Database Connection Pooling Explained"
+      url: "https://example.com/connection-pooling"
+
+# OPTIONAL: For real incident scenarios (Advanced level)
+real_incident:
+  company: "Company Name"
+  date: "YYYY-MM-DD"
+  duration: "X hours"
+  impact: "Brief impact description"
+  cause: "Root cause in one sentence"
+  story: |
+    Detailed narrative of the real incident.
+    What happened, how it was discovered, how it was fixed.
+    Link to the postmortem if available.

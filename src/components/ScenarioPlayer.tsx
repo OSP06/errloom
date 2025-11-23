@@ -145,7 +145,7 @@ export function ScenarioPlayer() {
           {/* Context banner */}
           <div className="p-6 bg-linear-to-r from-blue-900/50 to-purple-900/50 border-b border-gray-700">
             <div className="flex items-start gap-3">
-              <BookOpen className="w-5 h-5 text-blue-400 mt-1 flex-shrink-0" />
+              <BookOpen className="w-5 h-5 text-blue-400 mt-1 shrink-0" />
               <div>
                 <h2 className="font-semibold font-mono mb-2 text-blue-100">CONTEXT</h2>
                 <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">

@@ -4,10 +4,102 @@
 
 Errloom is an interactive learning platform that teaches developers how to debug real-world production outages. Practice troubleshooting common issues like 404 errors, N+1 queries, memory leaks, CORS errors, and environment variable misconfigurations—all in your browser with no setup required.
 
+<div align="center">
+
+[![GitHub stars](https://img.shields.io/github/stars/OSP06/errloom?style=social)](https://github.com/OSP06/errloom/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/OSP06/errloom?style=social)](https://github.com/OSP06/errloom/network/members)
+[![CI Status](https://github.com/OSP06/errloom/workflows/CI/badge.svg)](https://github.com/OSP06/errloom/actions)
 [![Built with React](https://img.shields.io/badge/React-19.2-blue.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.2-purple.svg)](https://vitejs.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+### [🚀 Try Live Demo](https://errloom.dev) | [📖 Documentation](https://github.com/OSP06/errloom#readme) | [💬 Discussions](https://github.com/OSP06/errloom/discussions)
+
+</div>
+
+---
+
+### 📸 Screenshots
+
+<div align="center">
+
+![Errloom Hero](./public/assets/marketing/screenshot-hero.png)
+*Interactive debugging scenarios with real production outage examples*
+
+![Scenario Player](./public/assets/marketing/screenshot-scenario.png)
+*Step-by-step guided debugging with code editor, logs, and interactive tasks*
+
+![Demo](./public/assets/marketing/demo.gif)
+*Live demo showing the complete debugging experience*
+
+</div>
+
+---
+
+## 📑 Table of Contents
+
+- [First Contributions Welcome!](#-first-contributions-welcome)
+- [Features](#-features)
+- [Available Scenarios](#-available-scenarios)
+- [Quick Start](#-quick-start)
+- [Project Structure](#-project-structure)
+- [Contributing New Scenarios](#-contributing-new-scenarios)
+- [Tech Stack](#-tech-stack)
+- [Contributing](#-contributing)
+- [Deployment](#-deployment)
+- [License](#-license)
+
+## 🎯 First Contributions Welcome!
+
+**New to open source? Start here!** We've made it super easy to make your first contribution:
+
+### 📌 Good First Issues (Pick One!)
+
+1. **🎓 Create a New Beginner Scenario** (Estimated: 30-45 minutes)
+   - Use our [scenario template](scenarios/templates/scenario-template.yaml) to create a debugging scenario
+   - Examples: Race condition bug, API timeout, SQL injection fix, Docker networking issue
+   - Follow the [step-by-step guide](scenarios/templates/README.md)
+   - Just add one YAML file—no code changes needed!
+   - **Why it's easy**: Template provided, auto-validation via CI, clear examples to follow
+
+2. **📝 Improve Scenario Documentation** (Estimated: 15-20 minutes)
+   - Pick any scenario in `public/scenarios/` and enhance the explanations
+   - Add real-world context, better hints, or clearer task instructions
+   - Improve completion summaries or add helpful resource links
+   - **Why it's easy**: Small, focused changes with immediate impact
+
+3. **💡 Add Code Comments to Core Components** (Estimated: 20-30 minutes)
+   - Document functions in [ScenarioPlayer.tsx](src/components/ScenarioPlayer.tsx) or [TaskPanel.tsx](src/components/TaskPanel.tsx)
+   - Add JSDoc comments explaining complex logic
+   - Help future contributors understand the codebase
+   - **Why it's easy**: No functional changes, just explanatory comments
+
+### 🚀 How to Contribute
+
+```bash
+# 1. Fork and clone
+git clone https://github.com/YOUR_USERNAME/errloom.git
+cd errloom
+
+# 2. Create a branch
+git checkout -b my-first-contribution
+
+# 3. Make your changes and test
+npm install
+npm run dev
+
+# 4. Commit and push
+git add .
+git commit -m "Add: brief description of your change"
+git push origin my-first-contribution
+
+# 5. Open a Pull Request on GitHub
+```
+
+**Need help?** Open an issue with the `good first issue` label or check our [Code of Conduct](CODE_OF_CONDUCT.md) and [Issue Templates](.github/ISSUE_TEMPLATE/).
+
+---
 
 ## ✨ Features
 
@@ -179,7 +271,38 @@ errloom/
 
 ## 📝 Contributing New Scenarios
 
-**Easy Contribution Process**: Just add a YAML file! The scenario manifest auto-generates during build.
+**Easy Contribution Process**: Just add a YAML file! The scenario manifest auto-generates during build, and CI automatically validates your submission.
+
+### 🎯 Use Our Template
+
+We provide a comprehensive scenario template to get you started:
+
+```bash
+# Copy the template
+cp scenarios/templates/scenario-template.yaml public/scenarios/beginner/my-scenario.yaml
+
+# Edit your scenario
+# See scenarios/templates/README.md for detailed guidance
+```
+
+### 📁 Sample Scenario Structure
+
+Here's what a complete scenario looks like (e.g., `public/scenarios/beginner/404-error.yaml`):
+
+```
+public/scenarios/beginner/
+└── 404-error.yaml          # Single YAML file defines everything!
+```
+
+**What gets tested when you submit:**
+- ✅ YAML syntax validation
+- ✅ Required fields check (id, level, title, duration, description, teaches, context, tabs, tasks, completion)
+- ✅ ID matches filename
+- ✅ Level matches directory (beginner/intermediate/advanced)
+- ✅ Task validation strings (`must_contain`) actually appear in solutions
+- ✅ YAML linting for consistent formatting
+
+**All validation runs automatically via GitHub Actions when you open a PR!**
 
 ### Step 1: Create Your YAML File
 
@@ -295,12 +418,119 @@ Before submitting your scenario:
 - [ ] `explanation` fields are helpful and educational
 - [ ] Test the scenario end-to-end
 
+### 📸 Complete Sample Scenario Walkthrough
+
+Here's a real example from [404-error.yaml](public/scenarios/beginner/404-error.yaml):
+
+**File: `public/scenarios/beginner/404-error.yaml`**
+
+```yaml
+id: "404-error"
+level: "beginner"
+title: "The 404 Error"
+duration: "15 minutes"
+description: "Your first production bug. Learn to read logs and understand HTTP status codes."
+teaches:
+  - "HTTP Status Codes"
+  - "Log Analysis"
+  - "Routing Debugging"
+
+context: |
+  You just launched your first website! A user reports: "The About link is broken."
+  Your job: Figure out what's wrong and fix it.
+
+tabs:
+  - name: "Error"
+    type: "text"
+    content: |
+      404 Not Found
+      The page you're looking for doesn't exist.
+
+  - name: "Logs"
+    type: "logs"
+    content:
+      - time: "10:24:12"
+        level: "INFO"
+        message: "GET /home → 200 OK"
+      - time: "10:24:15"
+        level: "ERROR"
+        message: "GET /about → 404 Not Found"
+        is_answer: true  # This log entry is highlighted for learning
+
+tasks:
+  - type: "multiple-choice"
+    question: "What does HTTP 404 mean?"
+    options:
+      - "Server error"
+      - "Resource not found"
+      - "Forbidden access"
+    correct: 1  # 0-indexed: "Resource not found"
+    explanation: |
+      Correct! HTTP 404 means the requested resource was not found on the server.
+
+  - type: "code-fix"
+    instructions: "Fix the routing code to handle /about"
+    starting_code: |
+      app.get('/home', (req, res) => res.send('Home'));
+      // Missing /about route!
+    validation:
+      must_contain: ["'/about'", "res.send"]
+    solution: |
+      app.get('/home', (req, res) => res.send('Home'));
+      app.get('/about', (req, res) => res.send('About'));
+    explanation: |
+      You added the missing route handler for /about. Great job!
+
+completion:
+  summary: |
+    # 🎉 Congratulations!
+
+    You've debugged your first 404 error! Key lessons:
+    1. HTTP 404 = Resource Not Found
+    2. Always check server logs for error details
+    3. Routing configuration must match expected URLs
+```
+
+**Testing Your Scenario:**
+
+```bash
+# 1. Create your scenario YAML file
+vim public/scenarios/beginner/my-scenario.yaml
+
+# 2. Generate manifest (or just build)
+npm run generate-manifest
+
+# 3. Start dev server
+npm run dev
+
+# 4. Navigate to http://localhost:5173/scenario/beginner/my-scenario
+# 5. Complete all tasks to verify they work correctly
+# 6. Check the completion time matches your estimate
+```
+
+**What you'll see in the UI:**
+- Clean terminal-style interface with dark theme
+- Tabs for Error, Logs, and Code
+- Interactive log viewer with clickable entries
+- Monaco code editor for code-fix tasks
+- Timer tracking your completion time
+- Progress saving automatically
+
+### 🏷️ Scenario Metadata & Tags
+
+Each scenario includes metadata for better organization:
+
+- **Duration**: Realistic time estimate (test it yourself!)
+- **Teaches**: 2-4 key concepts (e.g., "Caching", "Database", "Networking")
+- **Level**: beginner | intermediate | advanced
+- **Tags** (coming soon): Filter scenarios by topic (Redis, Kubernetes, API, etc.)
+
 ### Example Scenarios
 
 See existing scenarios for reference:
-- **Beginner**: [404-error.yaml](public/scenarios/beginner/404-error.yaml)
-- **Intermediate**: [cache-stampede.yaml](public/scenarios/intermediate/cache-stampede.yaml)
-- **Advanced**: [reddit-k8s-outage.yaml](public/scenarios/advanced/reddit-k8s-outage.yaml)
+- **Beginner**: [404-error.yaml](public/scenarios/beginner/404-error.yaml) - HTTP routing and logs
+- **Intermediate**: [cache-stampede.yaml](public/scenarios/intermediate/cache-stampede.yaml) - Cache invalidation and race conditions
+- **Advanced**: [reddit-k8s-outage.yaml](public/scenarios/advanced/reddit-k8s-outage.yaml) - Real Kubernetes incident from Reddit 2018
 
 ## 🛠️ Tech Stack
 
@@ -317,13 +547,16 @@ See existing scenarios for reference:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how you can help:
+Contributions are welcome! We've built a contributor-friendly process with templates, automated validation, and clear guidelines.
 
-1. **Add New Scenarios** - Create YAML files for intermediate and advanced scenarios
+### Ways to Contribute
+
+1. **Add New Scenarios** - Use our [scenario template](scenarios/templates/) for beginner/intermediate/advanced scenarios
 2. **Improve Existing Scenarios** - Enhance explanations, add hints, or improve task descriptions
-3. **Bug Fixes** - Report and fix bugs
-4. **Feature Requests** - Suggest new features or improvements
+3. **Bug Fixes** - Report bugs using our [bug report template](.github/ISSUE_TEMPLATE/bug_report.yml)
+4. **Feature Requests** - Suggest improvements via [feature request template](.github/ISSUE_TEMPLATE/feature_request.yml)
 5. **Documentation** - Improve documentation and examples
+6. **Code Reviews** - Help review scenario submissions from other contributors
 
 ### Development Workflow
 
@@ -348,25 +581,68 @@ git add .
 git commit -m "Add your feature description"
 git push origin feature/your-feature-name
 
-# Open a Pull Request
+# Open a Pull Request using our PR template
 ```
+
+### Pull Request Review Process
+
+When you open a PR:
+
+1. **Automated CI Checks** run automatically:
+   - TypeScript type checking
+   - ESLint code quality checks
+   - Build verification
+   - Scenario YAML validation (for scenario PRs)
+
+2. **Peer Review**: PRs are labeled for triage:
+   - `under review` - Awaiting maintainer review
+   - `needs changes` - Feedback provided, changes requested
+   - `accepted` - Approved and ready to merge
+
+3. **Scenario PRs**: For new scenarios, include a brief test report in your PR:
+   - Did you complete it end-to-end?
+   - Does the completion time match the estimate?
+   - Are validation strings working correctly?
+
+### Community Guidelines
+
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing. We're committed to providing a welcoming and inclusive environment for all contributors.
+
+**Questions?** Open an issue with the `question` label or check our [Issue Templates](.github/ISSUE_TEMPLATE/) for guidance.
 
 ## 🚀 Deployment
 
-Errloom is configured for easy deployment on Vercel:
+**Live site:** The main Errloom site at [errloom.dev](https://errloom.dev) is hosted on Vercel and **automatically deploys when changes are pushed to main**.
 
-### Deploy to Vercel
+### Want to Deploy Your Own Fork?
 
-1. **Fork and Connect**
+Errloom is a **100% static site** with no backend required.
 
-2. **Auto-Configuration**
+**Quick Deploy to Vercel:**
 
-3. **Enabled Analytics**
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/OSP06/errloom)
 
-### Configuration Files
+1. Click the button above
+2. Connect your GitHub account
+3. Vercel auto-configures and deploys
+4. **Future pushes to main auto-deploy** (no manual steps needed!)
 
-- **vercel.json** - SPA routing and caching configuration
-- **Analytics** - Pre-integrated `@vercel/analytics/react`
+### Self-Host Anywhere
+
+Build the static files and deploy to any host:
+
+```bash
+npm run build
+# Output: dist/ folder with static HTML, CSS, JS
+```
+
+**Compatible with:** Netlify, GitHub Pages, AWS S3, Cloudflare Pages, Docker (nginx), or any static host.
+
+**Self-hosting benefits:**
+- Full control and customization
+- No vendor lock-in (standard static files)
+- Free on most platforms
+- Optional: Remove analytics for complete privacy
 
 ## 📊 Progress Tracking
 

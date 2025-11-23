@@ -1,0 +1,55 @@
+---
+# yamllint configuration for Errloom scenario files
+
+extends: default
+
+rules:
+  # Allow longer lines for scenario content
+  line-length:
+    max: 120
+    level: warning
+
+  # Allow extra spaces in comments for readability
+  comments:
+    min-spaces-from-content: 1
+
+  # Indentation: 2 spaces
+  indentation:
+    spaces: 2
+    indent-sequences: true
+
+  # Allow document start (---) to be optional
+  document-start:
+    present: false
+
+  # Allow truthy values (yes/no, true/false, on/off)
+  truthy:
+    allowed-values: ['true', 'false']
+    check-keys: false
+
+  # Allow empty values in YAML
+  empty-values:
+    forbid-in-block-mappings: false
+    forbid-in-flow-mappings: false
+
+  # Key ordering not required
+  key-ordering: disable
+
+  # Allow duplicate keys (disabled to prevent errors)
+  key-duplicates: enable
+
+  # Brackets and braces
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+# Ignore certain paths
+ignore: |
+  node_modules/
+  dist/
+  .github/
+  .vscode/
