@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "prebuild": "node scripts/generate-manifest.js",
     "generate-manifest": "node scripts/generate-manifest.js",
+    "type-check": "tsc -b --noEmit",
     "lint": "eslint .",
     "preview": "vite preview"
   },

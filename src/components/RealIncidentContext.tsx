@@ -20,7 +20,7 @@ export function RealIncidentContext({
   return (
     <div className="mt-8 space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-red-900 to-orange-900 rounded-2xl p-8 text-white">
+      <div className="bg-linear-to-r from-red-900 to-orange-900 rounded-2xl p-8 text-white">
         <div className="flex items-start gap-4">
           <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
             <AlertTriangle className="w-8 h-8" />
@@ -133,7 +133,7 @@ function StatCard({ icon, value, label, color }: {
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-xl p-6 text-white`}>
+    <div className={`bg-linear-to-br ${colorClasses[color]} rounded-xl p-6 text-white`}>
       <div className="flex items-center gap-3 mb-2">
         {icon}
       </div>

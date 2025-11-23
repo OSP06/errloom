@@ -193,7 +193,7 @@ export function ScenarioList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
           <p className="text-gray-400">Loading scenarios...</p>
@@ -204,7 +204,7 @@ export function ScenarioList() {
 
   if (error || !scenarioList.length) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">{error || 'No scenarios found'}</p>
           <Link to="/" className="text-orange-500 hover:underline">
@@ -219,7 +219,7 @@ export function ScenarioList() {
   const progress = (completedCount / scenarioList.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+    <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -231,7 +231,7 @@ export function ScenarioList() {
             Back to Home
           </Link>
           <div className="flex items-center gap-4 mb-4">
-            <h1 className={`text-5xl font-bold font-mono capitalize bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
+            <h1 className={`text-5xl font-bold font-mono capitalize bg-linear-to-r ${config.color} bg-clip-text text-transparent`}>
               {level} Level
             </h1>
             {completedCount === scenarioList.length && (
@@ -253,7 +253,7 @@ export function ScenarioList() {
           </div>
           <div className="w-full bg-gray-700 rounded-full h-3">
             <div
-              className={`bg-gradient-to-r ${config.color} h-3 rounded-full transition-all duration-500`}
+              className={`bg-linear-to-r ${config.color} h-3 rounded-full transition-all duration-500`}
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -322,7 +322,7 @@ function ScenarioCard({ scenario, level, index, config }: ScenarioCardProps) {
         {/* Header with status */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <span className={`text-3xl font-bold font-mono bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
+            <span className={`text-3xl font-bold font-mono bg-linear-to-r ${config.color} bg-clip-text text-transparent`}>
               {index}
             </span>
             <div>
@@ -354,7 +354,7 @@ function ScenarioCard({ scenario, level, index, config }: ScenarioCardProps) {
               </div>
             )}
             {!completed && !locked && (
-              <div className={`bg-gradient-to-r ${config.color} rounded-full p-2`}>
+              <div className={`bg-linear-to-r ${config.color} rounded-full p-2`}>
                 <Play className="w-6 h-6 text-white" />
               </div>
             )}
@@ -370,7 +370,7 @@ function ScenarioCard({ scenario, level, index, config }: ScenarioCardProps) {
         {!locked && (
           <Link
             to={`/${level}/${id}`}
-            className={`inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${config.color} text-white rounded-lg font-mono font-semibold hover:shadow-xl transition-all`}
+            className={`inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r ${config.color} text-white rounded-lg font-mono font-semibold hover:shadow-xl transition-all`}
           >
             {completed ? 'REVIEW_SCENARIO' : 'START_DEBUG'} →
           </Link>

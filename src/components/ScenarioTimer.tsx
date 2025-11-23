@@ -95,7 +95,7 @@ export function PerformanceSummary({
   const timeDiff = Math.abs(timeElapsed - targetSeconds);
 
   return (
-    <div className="mt-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border-2 border-orange-200">
+    <div className="mt-6 bg-linear-to-r from-orange-50 to-red-50 rounded-xl p-6 border-2 border-orange-200">
       <h3 className="font-bold text-lg mb-4 text-gray-900">Your Performance</h3>
 
       <div className="grid grid-cols-3 gap-4 mb-4">

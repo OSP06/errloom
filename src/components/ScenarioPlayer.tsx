@@ -87,7 +87,7 @@ export function ScenarioPlayer() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+    <div className="min-h-screen bg-linear-to-br from-gray-900 to-gray-800 text-white">
       {/* Timer */}
       {!completed && (
         <ScenarioTimer
@@ -143,7 +143,7 @@ export function ScenarioPlayer() {
         {/* Left: Context + Tabs */}
         <div className="border-r border-gray-700 overflow-y-auto">
           {/* Context banner */}
-          <div className="p-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-b border-gray-700">
+          <div className="p-6 bg-linear-to-r from-blue-900/50 to-purple-900/50 border-b border-gray-700">
             <div className="flex items-start gap-3">
               <BookOpen className="w-5 h-5 text-blue-400 mt-1 flex-shrink-0" />
               <div>
@@ -251,7 +251,7 @@ function CompletionScreen({
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-20 h-20 bg-linear-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
@@ -314,7 +314,7 @@ function CompletionScreen({
         </Link>
         <button
           onClick={handleNextScenario}
-          className="flex-1 py-3 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-center rounded-lg font-semibold transition-all"
+          className="flex-1 py-3 px-6 bg-linear-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-center rounded-lg font-semibold transition-all"
         >
           {nextScenario ? 'Next Scenario →' : 'View All Scenarios'}
         </button>

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, Zap, Flame, Code, Clock, Trophy, Target, CheckCircle, Github } from 'lucide-react';
+import { BookOpen, Zap, Flame, Code, Clock, Trophy, Target, CheckCircle, FileCode, Server } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { loadManifest, type Manifest } from '../lib/manifestLoader';
 
@@ -17,19 +17,56 @@ export function Landing() {
   const advancedStats = manifest?.levels.advanced.stats.formattedDuration || '2h 40m';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+    <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+      {/* Floating Banners */}
+      <div className="fixed top-20 right-4 z-40 flex flex-col gap-3">
+        <a
+          href="https://github.com/OSP06/errloom"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group bg-gray-800/95 backdrop-blur-sm border-2 border-gray-700 hover:border-orange-500 rounded-lg p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-linear-to-br from-orange-500 to-red-600 rounded-lg">
+              <FileCode className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="font-mono font-bold text-sm text-white">View Source Code</div>
+              <div className="font-mono text-xs text-gray-400">MIT License</div>
+            </div>
+          </div>
+        </a>
+
+        <a
+          href="https://github.com/OSP06/errloom#self-hosting"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group bg-gray-800/95 backdrop-blur-sm border-2 border-gray-700 hover:border-green-500 rounded-lg p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-linear-to-br from-green-500 to-emerald-600 rounded-lg">
+              <Server className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="font-mono font-bold text-sm text-white">Self-Host Errloom</div>
+              <div className="font-mono text-xs text-gray-400">Free Forever</div>
+            </div>
+          </div>
+        </a>
+      </div>
+
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 via-red-600/20 to-purple-600/20 animate-pulse"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-orange-600/20 via-red-600/20 to-purple-600/20 animate-pulse"></div>
 
         <div className="relative max-w-7xl mx-auto px-4 py-20">
           {/* Logo & Title */}
           <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl mb-6 shadow-2xl">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-linear-to-br from-orange-500 to-red-600 rounded-2xl mb-6 shadow-2xl">
               <Flame className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-6xl md:text-7xl font-bold font-mono mb-6 bg-gradient-to-r from-orange-400 via-red-500 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-6xl md:text-7xl font-bold font-mono mb-6 bg-linear-to-r from-orange-400 via-red-500 to-purple-600 bg-clip-text text-transparent">
               Errloom
             </h1>
 
@@ -72,18 +109,18 @@ export function Landing() {
                 const element = document.getElementById('choose-level');
                 element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
-              className="px-8 py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl font-bold text-lg hover:from-orange-700 hover:to-red-700 transform hover:scale-105 transition-all shadow-2xl"
+              className="px-8 py-4 bg-linear-to-r from-orange-600 to-red-600 text-white rounded-xl font-bold text-lg hover:from-orange-700 hover:to-red-700 transform hover:scale-105 transition-all shadow-2xl"
             >
               Start Learning Now →
             </button>
             <a
-              href="https://github.com/OSP06/errloom"
+              href="https://github.com/OSP06/errloom/blob/main/CONTRIBUTING.md"
               target="_blank"
               rel="noopener noreferrer"
               className="px-8 py-4 bg-gray-800 text-white rounded-xl font-semibold text-lg hover:bg-gray-700 transform hover:scale-105 transition-all border border-gray-700 flex items-center gap-2"
             >
-              <Github className="w-5 h-5" />
-              View on GitHub
+              <Code className="w-5 h-5" />
+              Contribute
             </a>
           </div>
         </div>
@@ -175,7 +212,7 @@ export function Landing() {
       </div>
 
       {/* What You'll Learn Section */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 py-16">
+      <div className="bg-linear-to-r from-gray-800 to-gray-900 py-16">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold font-mono text-center mb-12">What You'll Master</h2>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -256,12 +293,12 @@ function LevelCard({ icon, level, color, title, subtitle, features, stats, diffi
   return (
     <div className="bg-gray-800 border-2 rounded-2xl p-8 hover:border-opacity-100 transition-all hover:transform hover:scale-105 relative overflow-hidden group">
       {/* Gradient overlay on hover */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${colorClasses[color]} opacity-0 group-hover:opacity-10 transition-opacity`}></div>
+      <div className={`absolute inset-0 bg-linear-to-br ${colorClasses[color]} opacity-0 group-hover:opacity-10 transition-opacity`}></div>
 
       <div className="relative">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <div className={`p-3 rounded-xl bg-gradient-to-br ${colorClasses[color]} text-white`}>
+          <div className={`p-3 rounded-xl bg-linear-to-br ${colorClasses[color]} text-white`}>
             {icon}
           </div>
           {badge && (
@@ -293,7 +330,7 @@ function LevelCard({ icon, level, color, title, subtitle, features, stats, diffi
 
         <Link
           to={`/${level}`}
-          className={`block w-full py-4 px-6 bg-gradient-to-r ${colorClasses[color]} text-white text-center rounded-xl font-bold hover:shadow-2xl transition-all`}
+          className={`block w-full py-4 px-6 bg-linear-to-r ${colorClasses[color]} text-white text-center rounded-xl font-bold hover:shadow-2xl transition-all`}
         >
           Start {title}
         </Link>
