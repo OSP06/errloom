@@ -32,7 +32,7 @@ Errloom is an interactive learning platform that teaches developers how to debug
 ![](./public/assets/marketing/monacoeditor.png)
 *Step-by-step guided debugging with code editor, logs, and interactive tasks*
 
-![Demo](./public/assets/marketing/demo.gif)
+![Demo](./public/assets/marketing/demo.mov)
 *Live demo showing the complete debugging experience*
 
 </div>
