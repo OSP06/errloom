@@ -14,7 +14,7 @@ Errloom is an interactive learning platform that teaches developers how to debug
 [![Vite](https://img.shields.io/badge/Vite-7.2-purple.svg)](https://vitejs.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-### [🚀 Try Live Demo](https://errloom.dev) | [📖 Documentation](https://github.com/OSP06/errloom#readme) | [💬 Discussions](https://github.com/OSP06/errloom/discussions)
+### [🚀 Try Live Demo](https://errloom.dev) | [📖 Documentation](https://github.com/OSP06/errloom#readme) | 
 
 </div>
 
