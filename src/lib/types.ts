@@ -1,4 +1,5 @@
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
+export type ScenarioMode = 'guided' | 'challenge';
 
 export interface LogEntry {
   time: string;
@@ -76,6 +77,9 @@ export interface Scenario {
   tasks: Task[];
   completion: CompletionInfo;
   real_incident?: RealIncident;
+  featured?: boolean;
+  viral?: boolean;
+  modes?: ScenarioMode[];
 }
 
 export interface TaskResult {

@@ -1,9 +1,12 @@
 import { Link, useParams } from 'react-router-dom';
-import { CheckCircle, Lock, Play, ArrowLeft, Trophy } from 'lucide-react';
+import { CheckCircle, Lock, Play, ArrowLeft, Trophy, Lightbulb, Target } from 'lucide-react';
 import { useProgressStore } from '../lib/progressStore';
 import { useState, useEffect } from 'react';
 import { getScenariosByLevel, type ScenarioMetadata } from '../lib/manifestLoader';
 import { TerminalWindow } from '../components/TerminalWindow';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 const levelConfig = {
   beginner: {
@@ -25,6 +28,7 @@ export function ScenarioList() {
   const [scenarioList, setScenarioList] = useState<ScenarioMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedModes, setSelectedModes] = useState<Record<string, 'guided' | 'challenge'>>({});
   const config = levelConfig[level as keyof typeof levelConfig];
   const isScenarioComplete = useProgressStore((state) => state.isScenarioComplete);
 
@@ -62,9 +66,12 @@ export function ScenarioList() {
       <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">{error || 'No scenarios found'}</p>
-          <Link to="/" className="text-orange-500 hover:underline">
-            ← Back to Home
-          </Link>
+          <Button variant="ghost" asChild>
+            <Link to="/">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Home
+            </Link>
+          </Button>
         </div>
       </div>
     );
@@ -78,13 +85,12 @@ export function ScenarioList() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            to="/"
-            className="text-orange-400 hover:text-orange-300 mb-4 inline-flex items-center gap-2 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
+          <Button variant="ghost" size="sm" asChild className="mb-4 -ml-2">
+            <Link to="/">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Home
+            </Link>
+          </Button>
           <div className="flex items-center gap-4 mb-4">
             <h1 className={`text-5xl font-bold font-mono capitalize bg-linear-to-r ${config.color} bg-clip-text text-transparent`}>
               {level} Level
@@ -101,21 +107,18 @@ export function ScenarioList() {
         </div>
 
         {/* Progress */}
-        <div className="bg-gray-800 rounded-xl p-6 mb-8 border border-gray-700">
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-gray-300 font-semibold">Your Progress</span>
-            <span className="text-gray-400">{completedCount}/{scenarioList.length} completed</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded-full h-3">
-            <div
-              className={`bg-linear-to-r ${config.color} h-3 rounded-full transition-all duration-500`}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          {progress === 100 && (
-            <p className="mt-3 text-green-400 font-semibold">🎉 Level Complete! Amazing work!</p>
-          )}
-        </div>
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center mb-3">
+              <span className="font-semibold">Your Progress</span>
+              <span className="text-muted-foreground">{completedCount}/{scenarioList.length} completed</span>
+            </div>
+            <Progress value={progress} className="h-3" />
+            {progress === 100 && (
+              <p className="mt-3 text-green-400 font-semibold">🎉 Level Complete! Amazing work!</p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Scenario Cards */}
         <div className="space-y-4">
@@ -126,6 +129,8 @@ export function ScenarioList() {
               level={level!}
               index={index + 1}
               config={config}
+              selectedMode={selectedModes[scenario.id] || (scenario.modes?.includes('guided') ? 'guided' : 'challenge')}
+              onModeChange={(mode: 'guided' | 'challenge') => setSelectedModes(prev => ({ ...prev, [scenario.id]: mode }))}
             />
           ))}
         </div>
@@ -143,6 +148,7 @@ interface ScenarioCardProps {
     description: string;
     completed: boolean;
     locked: boolean;
+    modes?: ('guided' | 'challenge')[];
   };
   level: string;
   index: number;
@@ -150,10 +156,14 @@ interface ScenarioCardProps {
     color: string;
     badge: string;
   };
+  selectedMode: 'guided' | 'challenge';
+  onModeChange: (mode: 'guided' | 'challenge') => void;
 }
 
-function ScenarioCard({ scenario, level, index, config }: ScenarioCardProps) {
-  const { completed, locked, id, title, duration, teaches, description } = scenario;
+function ScenarioCard({ scenario, level, index, config, selectedMode, onModeChange }: ScenarioCardProps) {
+  const { completed, locked, id, title, duration, teaches, description, modes } = scenario;
+  // Default to showing both modes if not specified
+  const hasBothModes = !modes || modes.length > 1;
 
   const getStatusIcon = () => {
     if (completed) return '✓';
@@ -221,24 +231,66 @@ function ScenarioCard({ scenario, level, index, config }: ScenarioCardProps) {
           {description}
         </p>
 
+        {/* Learning Mode Indicator & Toggle */}
+        <div className="p-3 bg-blue-900/20 backdrop-blur-sm border border-blue-500/30 rounded-lg">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              {selectedMode === 'guided' ? (
+                <Lightbulb className="w-4 h-4 text-blue-400" />
+              ) : (
+                <Target className="w-4 h-4 text-red-400" />
+              )}
+              <span className="text-sm font-semibold text-gray-200">
+                {selectedMode === 'guided' ? 'Guided Mode' : 'Challenge Mode'}
+              </span>
+            </div>
+
+            {/* Toggle buttons - only show if scenario has both modes */}
+            {hasBothModes && (
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant={selectedMode === 'guided' ? 'default' : 'ghost'}
+                  onClick={() => onModeChange('guided')}
+                  className={`h-7 px-2 text-xs ${selectedMode === 'guided' ? 'bg-blue-500 hover:bg-blue-600' : 'border-gray-600 hover:bg-gray-800'}`}
+                >
+                  <Lightbulb className="w-3 h-3 mr-1" />
+                  Guided
+                </Button>
+                <Button
+                  size="sm"
+                  variant={selectedMode === 'challenge' ? 'default' : 'ghost'}
+                  onClick={() => onModeChange('challenge')}
+                  className={`h-7 px-2 text-xs ${selectedMode === 'challenge' ? 'bg-red-500 hover:bg-red-600' : 'border-gray-600 hover:bg-gray-800'}`}
+                >
+                  <Target className="w-3 h-3 mr-1" />
+                  Challenge
+                </Button>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-gray-400">
+            {selectedMode === 'guided'
+              ? 'Step-by-step hints and explanations to help you learn'
+              : 'Test your debugging skills with minimal guidance'
+            }
+          </p>
+        </div>
+
         {/* Action button */}
         {!locked && (
-          <Link
-            to={`/${level}/${id}`}
-            className={`inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r ${config.color} text-white rounded-lg font-mono font-semibold hover:shadow-xl transition-all`}
-          >
-            {completed ? 'REVIEW_SCENARIO' : 'START_DEBUG'} →
-          </Link>
+          <Button asChild className={`bg-linear-to-r ${config.color} hover:shadow-xl font-mono`}>
+            <Link to={`/${level}/${id}?mode=${selectedMode}`}>
+              {completed ? 'REVIEW_SCENARIO' : 'START_DEBUG'} →
+            </Link>
+          </Button>
         )}
 
         {locked && (
-          <button
-            disabled
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-700 text-gray-500 rounded-lg font-mono font-semibold cursor-not-allowed"
-          >
+          <Button disabled variant="secondary" className="font-mono">
             <Lock className="w-4 h-4" />
             LOCKED
-          </button>
+          </Button>
         )}
       </div>
     </TerminalWindow>

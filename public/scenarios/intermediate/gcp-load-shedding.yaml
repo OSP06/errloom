@@ -1,0 +1,98 @@
+id: gcp-load-shedding
+level: intermediate
+title: "The Overzealous Load Shedder"
+duration: "22 minutes"
+description: "A bug in GCP's load-shedding logic triggered excessive 429 errors across unrelated services. Developers debugged their apps while the real villain was the cloud layer."
+teaches:
+  - Load Shedding
+  - Rate Limiting
+  - Cloud Platform Behavior
+  - Cascading Failures
+modes:
+  - guided
+  - challenge
+
+context: |
+  # ☁️ GCP Load Shedding Bug (2022)
+
+  Your app deployed on Google Cloud suddenly starts returning HTTP 429 (Too Many Requests)
+  to most requests. You haven't changed anything. Your rate limits haven't been hit.
+  Yet 70% of requests are being rejected.
+
+  Turns out: A bug in GCP's load-shedding system is incorrectly calculating load and
+  rejecting valid requests. Multiple unrelated services are affected.
+
+tabs:
+  - name: error-logs
+    type: logs
+    content:
+      - time: "10:15:23"
+        level: "ERROR"
+        message: "HTTP 429: Too Many Requests"
+      - time: "10:15:24"
+        level: "ERROR"
+        message: "HTTP 429: Too Many Requests"
+      - time: "10:15:25"
+        level: "INFO"
+        message: "HTTP 200: OK"
+      - time: "10:15:26"
+        level: "ERROR"
+        message: "HTTP 429: Too Many Requests"
+      - time: "10:15:27"
+        level: "ERROR"
+        message: "HTTP 429: Too Many Requests"
+      - time: "10:15:28"
+        level: "CRITICAL"
+        message: "ERROR RATE: 70% requests rejected"
+      - time: "10:15:29"
+        level: "WARN"
+        message: "YOUR RATE LIMIT: 10,000 req/min (current: 450 req/min)"
+
+  - name: gcp-response
+    type: text
+    content: |
+      HTTP/1.1 429 Too Many Requests
+      X-Cloud-Load-Shedding: active
+      X-GCP-Reason: load_exceeded_threshold
+      Retry-After: 60
+
+      Note: This is GCP's load shedding, not your application's rate limiting!
+
+tasks:
+  - id: identify-source
+    title: "Where Are 429s Coming From?"
+    type: multiple-choice
+    question: "Your app's rate limit is 10,000 req/min but you're only sending 450 req/min. Why the 429 errors?"
+    options:
+      - "Your application code has a bug in rate limiting logic"
+      - "GCP's load-shedding system has a bug and is incorrectly rejecting requests"
+      - "A DDoS attack is overwhelming your app"
+      - "Your database is slow causing backpressure"
+    correct: 1
+    explanation: |
+      The X-Cloud-Load-Shedding header reveals this is GCP's platform-level load shedding,
+      not your app. A bug in GCP's calculation made it think the system was overloaded
+      when it wasn't.
+
+  - id: mitigation
+    title: "How to Handle Platform Issues?"
+    type: multiple-choice
+    question: "When cloud platform bugs cause errors, what's the best approach?"
+    options:
+      - "Immediately migrate to a different cloud provider"
+      - "Implement retry logic with exponential backoff, monitor cloud status pages, have fallback regions"
+      - "Disable all rate limiting in your app"
+      - "Restart all your services hoping it fixes itself"
+    correct: 1
+    explanation: |
+      Platform issues happen. Best practices:
+      - Implement retry logic with exponential backoff
+      - Monitor cloud provider status pages
+      - Have multi-region deployments
+      - Use circuit breakers
+      - Contact cloud support for platform-level issues
+
+completion:
+  summary: |
+    Sometimes the bug isn't in your code - it's in the platform underneath.
+    Always check cloud provider status and response headers when debugging mysterious issues.

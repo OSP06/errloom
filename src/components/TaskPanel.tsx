@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import type { Task, TaskResult, MultipleChoiceTask, CodeFixTask, FindInLogsTask } from '../lib/types';
 import { CodeEditor } from './CodeEditor';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface TaskPanelProps {
   task: Task;
@@ -46,39 +48,41 @@ function MultipleChoiceTaskComponent({
   };
 
   return (
-    <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-      <h3 className="text-lg font-semibold mb-4 text-white">📝 Task</h3>
-      <p className="text-gray-300 mb-4">{task.question}</p>
+    <Card className="p-6 bg-gray-800/40 backdrop-blur-lg border-gray-700/50 shadow-xl">
+      <CardContent className="p-0">
+        <h3 className="text-lg font-semibold mb-4">📝 Task</h3>
+        <p className="text-muted-foreground mb-4">{task.question}</p>
 
-      <div className="space-y-2 mb-4">
-        {task.options.map((option, index) => (
-          <button
-            key={index}
-            onClick={() => setSelectedOption(index)}
-            disabled={result?.correct}
-            className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
-              selectedOption === index
-                ? 'border-orange-500 bg-orange-900/30 text-white'
-                : 'border-gray-700 hover:border-gray-600 text-gray-300'
-            } ${result?.correct ? 'opacity-60' : ''}`}
+        <div className="space-y-2 mb-4">
+          {task.options.map((option, index) => (
+            <button
+              key={index}
+              onClick={() => setSelectedOption(index)}
+              disabled={result?.correct}
+              className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 backdrop-blur-sm ${
+                selectedOption === index
+                  ? 'border-orange-500 bg-orange-900/40 text-white shadow-lg shadow-orange-500/20'
+                  : 'border-gray-700 hover:border-gray-600 text-muted-foreground bg-gray-800/30 hover:bg-gray-800/50'
+              } ${result?.correct ? 'opacity-60' : ''}`}
+            >
+              <span className="font-medium text-orange-400">{String.fromCharCode(65 + index)}.</span> {option}
+            </button>
+          ))}
+        </div>
+
+        {!result?.correct && (
+          <Button
+            onClick={handleSubmit}
+            disabled={selectedOption === null}
+            className="bg-orange-600 hover:bg-orange-700"
           >
-            <span className="font-medium text-orange-400">{String.fromCharCode(65 + index)}.</span> {option}
-          </button>
-        ))}
-      </div>
+            Submit Answer
+          </Button>
+        )}
 
-      {!result?.correct && (
-        <button
-          onClick={handleSubmit}
-          disabled={selectedOption === null}
-          className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors"
-        >
-          Submit Answer
-        </button>
-      )}
-
-      {result && <TaskResultDisplay result={result} />}
-    </div>
+        {result && <TaskResultDisplay result={result} />}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -127,32 +131,34 @@ function CodeFixTaskComponent({
   };
 
   return (
-    <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-      <h3 className="text-lg font-semibold mb-4 text-white">💻 Task</h3>
-      <p className="text-gray-300 mb-4">{task.instructions}</p>
+    <Card className="p-6 bg-gray-800/40 backdrop-blur-lg border-gray-700/50 shadow-xl">
+      <CardContent className="p-0">
+        <h3 className="text-lg font-semibold mb-4">💻 Task</h3>
+        <p className="text-muted-foreground mb-4">{task.instructions}</p>
 
-      <div className="mb-4">
-        <CodeEditor
-          code={{
-            language: 'javascript',
-            content: code,
-            editable: true
-          }}
-          onChange={setCode}
-        />
-      </div>
+        <div className="mb-4">
+          <CodeEditor
+            code={{
+              language: 'javascript',
+              content: code,
+              editable: true
+            }}
+            onChange={setCode}
+          />
+        </div>
 
-      {!result?.correct && (
-        <button
-          onClick={handleSubmit}
-          className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-        >
-          Check Solution
-        </button>
-      )}
+        {!result?.correct && (
+          <Button
+            onClick={handleSubmit}
+            className="bg-orange-600 hover:bg-orange-700"
+          >
+            Check Solution
+          </Button>
+        )}
 
-      {result && <TaskResultDisplay result={result} />}
-    </div>
+        {result && <TaskResultDisplay result={result} />}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -165,13 +171,15 @@ function FindInLogsTaskComponent({
   result?: TaskResult;
 }) {
   return (
-    <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-      <h3 className="text-lg font-semibold mb-4 text-white">🔍 Task</h3>
-      <p className="text-gray-300 mb-4">{task.instructions}</p>
-      <p className="text-sm text-gray-400">Click on the log entry that answers the question.</p>
+    <Card className="p-6 bg-gray-800/40 backdrop-blur-lg border-gray-700/50 shadow-xl">
+      <CardContent className="p-0">
+        <h3 className="text-lg font-semibold mb-4">🔍 Task</h3>
+        <p className="text-muted-foreground mb-4">{task.instructions}</p>
+        <p className="text-sm text-muted-foreground">Click on the log entry that answers the question.</p>
 
-      {result && <TaskResultDisplay result={result} />}
-    </div>
+        {result && <TaskResultDisplay result={result} />}
+      </CardContent>
+    </Card>
   );
 }
 

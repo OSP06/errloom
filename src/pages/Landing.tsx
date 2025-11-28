@@ -1,14 +1,20 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, Zap, Flame, Code, Clock, Trophy, Target, CheckCircle, FileCode, Server } from 'lucide-react';
+import { BookOpen, Zap, Flame, Code, Clock, Trophy, Target, CheckCircle, FileCode, Server, Lightbulb, Gauge, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { loadManifest, type Manifest } from '../lib/manifestLoader';
+import { loadManifest, getViralScenarios, type Manifest, type ScenarioMetadata } from '../lib/manifestLoader';
 import { ErrloomIcon } from '../components/icons/ErrloomIcon';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 export function Landing() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
+  const [viralScenarios, setViralScenarios] = useState<ScenarioMetadata[]>([]);
+  const [viralModes, setViralModes] = useState<Record<string, 'guided' | 'challenge'>>({});
 
   useEffect(() => {
     loadManifest().then(setManifest).catch(console.error);
+    getViralScenarios().then(setViralScenarios).catch(console.error);
   }, []);
 
   const totalScenarios = manifest?.stats.totalScenarios || 15;
@@ -16,89 +22,142 @@ export function Landing() {
   const beginnerStats = manifest?.levels.beginner.stats.formattedDuration || '1h 26m';
   const intermediateStats = manifest?.levels.intermediate.stats.formattedDuration || '2h 2m';
   const advancedStats = manifest?.levels.advanced.stats.formattedDuration || '2h 40m';
+  const beginnerCount = manifest?.levels.beginner.stats.count || 5;
+  const intermediateCount = manifest?.levels.intermediate.stats.count || 5;
+  const advancedCount = manifest?.levels.advanced.stats.count || 5;
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
 
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-linear-to-r from-orange-600/20 via-red-600/20 to-purple-600/20 animate-pulse"></div>
+      {/* Hero Section - Modern Video-First Design */}
+      <div className="relative overflow-hidden min-h-screen flex items-center">
+        {/* Animated gradient mesh background */}
+        <div className="absolute inset-0 gradient-mesh"></div>
 
-        <div className="relative max-w-7xl mx-auto px-4 py-20">
+        <div className="relative max-w-7xl mx-auto px-4 py-12 w-full">
           {/* Logo & Title */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-28 h-28 bg-transparent rounded-2xl mb-6">
-              <ErrloomIcon size={96} strokeWidth={2} />
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-transparent rounded-2xl mb-4">
+              <ErrloomIcon size={72} strokeWidth={2} />
             </div>
-            <h1 className="text-6xl md:text-7xl font-bold font-mono mb-6 bg-linear-to-r from-orange-400 via-red-500 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-6xl font-bold font-mono mb-4 bg-linear-to-r from-orange-400 via-red-500 to-purple-600 bg-clip-text text-transparent">
               Errloom
             </h1>
+            <p className="text-xl md:text-2xl text-gray-200 mb-2 font-light">
+              Master production debugging through <span className="text-orange-400 font-semibold">real-world disasters</span>
+            </p>
+          </div>
 
-            {/* What is Errloom */}
-            <div className="max-w-3xl mx-auto mb-6">
-              <p className="text-2xl md:text-3xl text-gray-200 mb-4 font-light leading-relaxed">
-                Master production debugging through <span className="text-orange-400 font-semibold">real-world disaster scenarios</span>
-              </p>
-              <p className="text-lg text-gray-400 leading-relaxed mb-6">
-                Practice debugging real production outages from Reddit, GitLab, Discord, AWS, and Cloudflare.
-                Learn how to read logs, trace errors, and fix critical bugs—all in your browser, no setup required.
-              </p>
+          {/* Large Video Player - Prominently Displayed */}
+          <div className="max-w-5xl mx-auto mb-8">
+            <div className="relative glass-card rounded-2xl p-2 glow-orange">
+              <video
+                src="/assets/marketing/Demo.webm"
+                className="w-full rounded-xl"
+                controls
+                autoPlay
+                muted
+                loop
+                playsInline
+              >
+                Your browser does not support the video tag.
+              </video>
 
-              {/* Compact inline stats */}
-              <div className="flex flex-wrap items-center justify-center gap-3 text-sm font-mono">
-                <span className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
-                  <Target className="w-4 h-4 inline mr-1.5 text-orange-400" />
-                  {totalScenarios} scenarios
-                </span>
-                <span className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
-                  <Clock className="w-4 h-4 inline mr-1.5 text-orange-400" />
-                  {totalHours}+ hours
-                </span>
-                <span className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
-                  <Trophy className="w-4 h-4 inline mr-1.5 text-green-400" />
-                  100% free
-                </span>
-                <span className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
-                  <Code className="w-4 h-4 inline mr-1.5 text-red-400" />
-                  Real incidents
-                </span>
+              {/* Scroll Indicator - Overlaid on Video */}
+              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 animate-bounce z-10">
+                <button
+                  onClick={() => {
+                    const element = document.getElementById('features');
+                    element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className="flex flex-col items-center gap-1 text-white/70 hover:text-orange-400 transition-colors cursor-pointer group bg-black/40 backdrop-blur-sm rounded-full px-4 py-2"
+                  aria-label="Scroll down"
+                >
+                  <span className="text-xs font-mono opacity-80 group-hover:opacity-100 transition-opacity">Scroll</span>
+                  <ChevronDown className="w-5 h-5" />
+                </button>
               </div>
             </div>
           </div>
 
+          {/* Floating Glassmorphic Stats Cards */}
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
+            <div className="glass-card rounded-xl px-6 py-3 hover:scale-105 transition-transform">
+              <div className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-orange-400" />
+                <span className="font-mono font-bold text-lg">{totalScenarios}</span>
+                <span className="text-gray-400 text-sm">scenarios</span>
+              </div>
+            </div>
+            <div className="glass-card rounded-xl px-6 py-3 hover:scale-105 transition-transform">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-orange-400" />
+                <span className="font-mono font-bold text-lg">{totalHours}+</span>
+                <span className="text-gray-400 text-sm">hours</span>
+              </div>
+            </div>
+            <div className="glass-card rounded-xl px-6 py-3 hover:scale-105 transition-transform">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-green-400" />
+                <span className="font-mono font-bold text-lg">100%</span>
+                <span className="text-gray-400 text-sm">free</span>
+              </div>
+            </div>
+            <div className="glass-card rounded-xl px-6 py-3 hover:scale-105 transition-transform">
+              <div className="flex items-center gap-2">
+                <Code className="w-5 h-5 text-red-400" />
+                <span className="font-mono font-bold text-lg">Real</span>
+                <span className="text-gray-400 text-sm">incidents</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Subtitle */}
+          <p className="text-center text-gray-400 max-w-3xl mx-auto mb-8 leading-relaxed">
+            Practice debugging real production outages from Reddit, GitLab, Discord, AWS, and Cloudflare.
+            Learn how to read logs, trace errors, and fix critical bugs—all in your browser, no setup required.
+          </p>
+
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-            <button
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+            <Button
+              size="lg"
               onClick={() => {
                 const element = document.getElementById('choose-level');
                 element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
-              className="px-8 py-4 bg-linear-to-r from-orange-600 to-red-600 text-white rounded-xl font-bold text-lg hover:from-orange-700 hover:to-red-700 transform hover:scale-105 transition-all shadow-2xl"
+              className="px-8 py-6 bg-linear-to-r from-orange-600 to-red-600 text-white font-bold text-lg hover:from-orange-700 hover:to-red-700 shadow-2xl hover:scale-105 transition-transform"
             >
               Start Learning Now →
-            </button>
-            <a
-              href="https://github.com/OSP06/errloom/blob/main/CONTRIBUTING.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-4 bg-gray-800 text-white rounded-xl font-semibold text-lg hover:bg-gray-700 transform hover:scale-105 transition-all border border-gray-700 flex items-center gap-2"
+            </Button>
+            <Button
+              size="lg"
+              variant="secondary"
+              asChild
+              className="hover:scale-105 transition-transform"
             >
-              <Code className="w-5 h-5" />
-              Contribute
-            </a>
+              <a
+                href="https://github.com/OSP06/errloom/blob/main/CONTRIBUTING.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2"
+              >
+                <Code className="w-5 h-5" />
+                Contribute
+              </a>
+            </Button>
           </div>
 
-          {/* Prominent Feature Banners - Centered */}
-          <div className="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto mb-16">
+          {/* Prominent Feature Banners - Bento Grid Style */}
+          <div className="grid sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
             <a
               href="https://github.com/OSP06/errloom"
               target="_blank"
               rel="noopener noreferrer"
-              className="group bg-gray-800/95 backdrop-blur-sm border-2 border-gray-700 hover:border-orange-500 rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+              className="group glass-card rounded-2xl p-6 hover:glow-orange transition-all hover:scale-105"
             >
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-linear-to-br from-orange-500 to-red-600 rounded-lg shrink-0">
+                <div className="p-3 bg-linear-to-br from-orange-500 to-red-600 rounded-xl shrink-0">
                   <FileCode className="w-7 h-7 text-white" />
                 </div>
                 <div className="text-left">
@@ -112,10 +171,10 @@ export function Landing() {
               href="https://github.com/OSP06/errloom#deployment"
               target="_blank"
               rel="noopener noreferrer"
-              className="group bg-gray-800/95 backdrop-blur-sm border-2 border-gray-700 hover:border-green-500 rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+              className="group glass-card rounded-2xl p-6 hover:glow-orange transition-all hover:scale-105"
             >
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-linear-to-br from-green-500 to-emerald-600 rounded-lg shrink-0">
+                <div className="p-3 bg-linear-to-br from-green-500 to-emerald-600 rounded-xl shrink-0">
                   <Server className="w-7 h-7 text-white" />
                 </div>
                 <div className="text-left">
@@ -128,27 +187,59 @@ export function Landing() {
         </div>
       </div>
 
-      {/* Features Section */}
-      <div className="max-w-7xl mx-auto px-4 py-16">
+      {/* Features Section - Bento Grid */}
+      <div id="features" className="max-w-7xl mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold font-mono text-center mb-12">Why Errloom?</h2>
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <FeatureCard
-            title="Real Production Disasters"
-            description="Learn from actual incidents at Reddit, GitLab, Discord, AWS, and Cloudflare"
-            icon="🔥"
-          />
-          <FeatureCard
-            title="Interactive Learning"
-            description="Hands-on scenarios with code fixes, log analysis, and multiple-choice questions"
-            icon="🎮"
-          />
-          <FeatureCard
-            title="Add your Own Scenarios"
-            description="Open source platform—contribute and share your own debugging challenges"
-            icon="⚡"
-          />
+        <div className="grid md:grid-cols-3 gap-6 mb-16">
+          <div className="glass-card rounded-2xl p-8 hover:glow-orange transition-all hover:scale-105 md:col-span-1">
+            <div className="text-5xl mb-4">🔥</div>
+            <h3 className="text-xl font-bold mb-3">Real Production Disasters</h3>
+            <p className="text-muted-foreground">Learn from actual incidents at Reddit, GitLab, Discord, AWS, and Cloudflare</p>
+          </div>
+
+          <div className="glass-card rounded-2xl p-8 hover:glow-orange transition-all hover:scale-105 md:col-span-1">
+            <div className="text-5xl mb-4">🎮</div>
+            <h3 className="text-xl font-bold mb-3">Interactive Learning</h3>
+            <p className="text-muted-foreground">Hands-on scenarios with code fixes, log analysis, and multiple-choice questions</p>
+          </div>
+
+          <div className="glass-card rounded-2xl p-8 hover:glow-orange transition-all hover:scale-105 md:col-span-1">
+            <div className="text-5xl mb-4">⚡</div>
+            <h3 className="text-xl font-bold mb-3">Add your Own Scenarios</h3>
+            <p className="text-muted-foreground">Open source platform—contribute and share your own debugging challenges</p>
+          </div>
         </div>
       </div>
+
+      {/* Viral Scenarios Section - Bento Grid */}
+      {viralScenarios.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 py-16 border-t border-gray-800">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Flame className="w-8 h-8 text-orange-400" />
+            <h2 className="text-3xl font-bold font-mono text-center">Viral Tech Disasters</h2>
+            <Trophy className="w-8 h-8 text-yellow-400" />
+          </div>
+          <p className="text-gray-400 text-center mb-12">Real incidents that broke the internet and made headlines worldwide</p>
+
+          {/* Bento Grid Layout - Apple Style */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {viralScenarios.map((scenario, index) => (
+              <div
+                key={scenario.id}
+                className={`${
+                  index === 0 ? 'md:col-span-2 lg:col-span-2' : ''
+                }`}
+              >
+                <ViralScenarioCard
+                  scenario={scenario}
+                  selectedMode={viralModes[scenario.id] || (scenario.modes?.includes('guided') ? 'guided' : 'challenge')}
+                  onModeChange={(mode: 'guided' | 'challenge') => setViralModes(prev => ({ ...prev, [scenario.id]: mode }))}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Level Cards Section */}
       <div id="choose-level" className="max-w-7xl mx-auto px-4 py-16 scroll-mt-8">
@@ -170,7 +261,7 @@ export function Landing() {
               'CORS issues',
               'Environment variables'
             ]}
-            stats={`5 scenarios • ~${beginnerStats}`}
+            stats={`${beginnerCount} scenarios • ~${beginnerStats}`}
             difficulty="Easy"
           />
 
@@ -188,7 +279,7 @@ export function Landing() {
               'Message queue backups',
               'Rate limit cascades'
             ]}
-            stats={`5 scenarios • ~${intermediateStats}`}
+            stats={`${intermediateCount} scenarios • ~${intermediateStats}`}
             difficulty="Medium"
           />
 
@@ -206,7 +297,7 @@ export function Landing() {
               'AWS S3 cascade',
               'Cloudflare BGP hijack'
             ]}
-            stats={`5 scenarios • ~${advancedStats}`}
+            stats={`${advancedCount} scenarios • ~${advancedStats}`}
             difficulty="Hard"
             badge="Real Incidents"
           />
@@ -257,16 +348,6 @@ export function Landing() {
   );
 }
 
-function FeatureCard({ title, description, icon }: { title: string; description: string; icon: string }) {
-  return (
-    <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 hover:border-orange-500 transition-all hover:transform hover:scale-105">
-      <div className="text-5xl mb-4">{icon}</div>
-      <h3 className="text-xl font-bold mb-3">{title}</h3>
-      <p className="text-gray-400">{description}</p>
-    </div>
-  );
-}
-
 interface LevelCardProps {
   icon: React.ReactNode;
   level: string;
@@ -293,59 +374,183 @@ function LevelCard({ icon, level, color, title, subtitle, features, stats, diffi
   };
 
   return (
-    <div className="bg-gray-800 border-2 rounded-2xl p-8 hover:border-opacity-100 transition-all hover:transform hover:scale-105 relative overflow-hidden group">
+    <Card className="glass-card border-2 hover:glow-orange p-6 transition-all duration-300 hover:scale-105 relative overflow-hidden group">
       {/* Gradient overlay on hover */}
       <div className={`absolute inset-0 bg-linear-to-br ${colorClasses[color]} opacity-0 group-hover:opacity-10 transition-opacity`}></div>
 
-      <div className="relative">
+      <CardContent className="relative p-0 flex flex-col h-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className={`p-3 rounded-xl bg-linear-to-br ${colorClasses[color]} text-white`}>
             {icon}
           </div>
           {badge && (
-            <span className="px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-full">
+            <Badge className="bg-purple-600 text-white hover:bg-purple-700">
               {badge}
-            </span>
+            </Badge>
           )}
         </div>
 
         <h3 className="text-2xl font-bold mb-2">{title}</h3>
-        <p className="text-gray-400 mb-4">{subtitle}</p>
+        <p className="text-muted-foreground mb-4">{subtitle}</p>
 
         {/* Difficulty badge */}
-        <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mb-6 border ${difficultyColors[color]}`}>
+        <Badge className={`mb-6 ${difficultyColors[color]}`} variant="outline">
           {difficulty}
-        </div>
+        </Badge>
 
         {/* Features */}
         <ul className="space-y-3 mb-6">
           {features.map((feature, i) => (
-            <li key={i} className="flex items-start gap-2 text-gray-300">
+            <li key={i} className="flex items-start gap-2 text-muted-foreground">
               <CheckCircle className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
               <span className="text-sm">{feature}</span>
             </li>
           ))}
         </ul>
 
-        <p className="text-sm text-gray-500 mb-6">{stats}</p>
+        <p className="text-sm text-muted-foreground mb-6">{stats}</p>
 
-        <Link
-          to={`/${level}`}
-          className={`block w-full py-4 px-6 bg-linear-to-r ${colorClasses[color]} text-white text-center rounded-xl font-bold hover:shadow-2xl transition-all`}
-        >
-          Start {title}
-        </Link>
-      </div>
-    </div>
+        <Button asChild className={`w-full bg-linear-to-r ${colorClasses[color]} hover:shadow-2xl`}>
+          <Link to={`/${level}`}>
+            Start {title}
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
 function SkillItem({ skill }: { skill: string }) {
   return (
-    <div className="flex items-start gap-3 bg-gray-900 p-4 rounded-lg border border-gray-800">
+    <div className="glass-card flex items-start gap-3 p-4 rounded-xl hover:glow-orange transition-all duration-200 hover:scale-105">
       <CheckCircle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
       <span className="text-gray-300">{skill}</span>
     </div>
+  );
+}
+
+interface ViralScenarioCardProps {
+  scenario: ScenarioMetadata;
+  selectedMode: 'guided' | 'challenge';
+  onModeChange: (mode: 'guided' | 'challenge') => void;
+}
+
+function ViralScenarioCard({ scenario, selectedMode, onModeChange }: ViralScenarioCardProps) {
+  const levelColors = {
+    beginner: 'from-green-600 to-emerald-600',
+    intermediate: 'from-yellow-600 to-orange-600',
+    advanced: 'from-red-600 to-orange-600'
+  };
+
+  const color = levelColors[scenario.level as keyof typeof levelColors] || levelColors.beginner;
+  // Default to showing both modes if not specified
+  const hasBothModes = !scenario.modes || scenario.modes.length > 1;
+
+  return (
+    <Card className="glass-card border-2 hover:glow-orange transition-all duration-300 group hover:scale-105 h-full">
+      <CardContent className="p-6 h-full flex flex-col">
+        {/* Header with badges */}
+        <div className="flex items-start justify-between mb-4">
+          <Badge className="bg-orange-500 text-white shadow-lg shadow-orange-500/50">
+            <Flame className="w-3 h-3 mr-1" />
+            Viral
+          </Badge>
+          <Badge variant="outline" className="capitalize border-gray-600">
+            {scenario.level}
+          </Badge>
+        </div>
+
+        {/* Title */}
+        <h3 className="text-xl font-bold mb-3 group-hover:text-orange-400 transition-colors">
+          {scenario.title}
+        </h3>
+
+        {/* Description */}
+        <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+          {scenario.description}
+        </p>
+
+        {/* Topics */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {scenario.teaches.slice(0, 2).map((topic, i) => (
+            <Badge key={i} variant="secondary" className="text-xs">
+              {topic}
+            </Badge>
+          ))}
+          {scenario.teaches.length > 2 && (
+            <Badge variant="secondary" className="text-xs">
+              +{scenario.teaches.length - 2} more
+            </Badge>
+          )}
+        </div>
+
+        {/* Mode Selection - Interactive toggle */}
+        <div className="mb-4 p-3 bg-blue-900/20 backdrop-blur-sm border border-blue-500/30 rounded-lg">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              {selectedMode === 'guided' ? (
+                <Lightbulb className="w-4 h-4 text-blue-400" />
+              ) : (
+                <Target className="w-4 h-4 text-red-400" />
+              )}
+              <span className="text-sm font-semibold text-gray-200">
+                {selectedMode === 'guided' ? 'Guided Mode' : 'Challenge Mode'}
+              </span>
+            </div>
+
+            {/* Toggle buttons - only show if scenario has both modes */}
+            {hasBothModes && (
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant={selectedMode === 'guided' ? 'default' : 'ghost'}
+                  onClick={() => onModeChange('guided')}
+                  className={`h-7 px-2 text-xs ${selectedMode === 'guided' ? 'bg-blue-500 hover:bg-blue-600' : 'border-gray-600 hover:bg-gray-800'}`}
+                >
+                  <Lightbulb className="w-3 h-3 mr-1" />
+                  Guided
+                </Button>
+                <Button
+                  size="sm"
+                  variant={selectedMode === 'challenge' ? 'default' : 'ghost'}
+                  onClick={() => onModeChange('challenge')}
+                  className={`h-7 px-2 text-xs ${selectedMode === 'challenge' ? 'bg-red-500 hover:bg-red-600' : 'border-gray-600 hover:bg-gray-800'}`}
+                >
+                  <Target className="w-3 h-3 mr-1" />
+                  Challenge
+                </Button>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-gray-400">
+            {selectedMode === 'guided'
+              ? 'Step-by-step hints and explanations to help you learn'
+              : 'Test your debugging skills with minimal guidance'
+            }
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="space-y-3 pt-4 border-t border-gray-800">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              {scenario.duration}
+            </span>
+            <span className="text-muted-foreground flex items-center gap-1">
+              <Gauge className="w-4 h-4" />
+              {scenario.level}
+            </span>
+          </div>
+
+          <Button asChild size="sm" className={`w-full bg-linear-to-r ${color} shadow-lg hover:shadow-xl transition-all`}>
+            <Link to={`/${scenario.level}/${scenario.id}?mode=${selectedMode}`}>
+              Start Scenario →
+            </Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,0 +1,388 @@
+id: npm-left-pad
+level: intermediate
+title: "The Left-Pad Disaster"
+duration: "20 minutes"
+description: "Experience the 2016 incident where 11 lines of code broke the internet. Thousands of JavaScript projects failed when a developer unpublished the 'left-pad' package from npm."
+teaches:
+  - Dependency Management
+  - Supply Chain Security
+  - Package Registries
+  - Breaking Changes
+featured: true
+viral: true
+modes:
+  - guided
+  - challenge
+real_incident:
+  company: "npm / JavaScript Ecosystem"
+  date: "March 22, 2016"
+  impact: "Broke builds for thousands of projects including React, Babel, and major corporate applications worldwide"
+  duration: "~2.5 hours"
+  root_cause: "Developer unpublished 'left-pad' package after dispute, causing cascade failure across npm ecosystem"
+
+context: |
+  # 📦 Incident Report: npm Registry Crisis
+
+  **Date:** March 22, 2016, 2:30 PM UTC
+  **Severity:** CRITICAL - Global Impact
+  **Status:** ONGOING OUTAGE
+
+  ## Situation
+
+  Your team is frantically debugging why your production build pipeline suddenly stopped working.
+  Reports are flooding in from developers worldwide - React won't build, Babel is broken,
+  and thousands of projects are failing with the same mysterious error:
+
+  ```
+  npm ERR! 404 'left-pad' is not in the npm registry
+  ```
+
+  ## What Just Happened?
+
+  A developer named Azer Koçulu got into a naming dispute with npm, Inc. and a company called Kik
+  over a package name. In protest, he unpublished ALL of his packages from npm, including a tiny
+  11-line utility called "left-pad" that pads strings with characters.
+
+  The problem? Over 16,000 packages depended on it, including babel-core, which is used by
+  React and countless other major projects.
+
+  ## Your Mission
+
+  You need to:
+  1. Understand the cascade failure in the dependency tree
+  2. Identify why this single package caused such widespread damage
+  3. Implement immediate fixes to get builds working again
+  4. Recommend long-term solutions to prevent this from ever happening again
+
+  This is a real incident that changed how the entire JavaScript ecosystem thinks about
+  dependency management forever.
+
+tabs:
+  - name: "package.json"
+    type: code
+    content:
+      language: json
+      content: |
+        {
+          "name": "your-production-app",
+          "version": "2.4.1",
+          "description": "Critical production application",
+          "dependencies": {
+            "react": "^15.0.0",
+            "babel-core": "^6.7.0",
+            "express": "^4.13.4",
+            "lodash": "^4.6.1",
+            "moment": "^2.12.0"
+          },
+          "devDependencies": {
+            "webpack": "^1.12.14",
+            "babel-loader": "^6.2.4"
+          },
+          "scripts": {
+            "build": "webpack --config webpack.config.js",
+            "start": "node server.js"
+          }
+        }
+
+  - name: "Build Error Log"
+    type: logs
+    content:
+      - time: "14:32:18"
+        level: "INFO"
+        message: "Starting webpack build..."
+      - time: "14:32:19"
+        level: "INFO"
+        message: "Resolving dependencies..."
+      - time: "14:32:20"
+        level: "ERROR"
+        message: "Build failed"
+      - time: "14:32:20"
+        level: "ERROR"
+        message: "npm ERR! 404 Registry returned 404 for GET on https://registry.npmjs.org/left-pad"
+      - time: "14:32:20"
+        level: "ERROR"
+        message: "npm ERR! 404 'left-pad@~1.0.2' is not in the npm registry."
+      - time: "14:32:20"
+        level: "ERROR"
+        message: "npm ERR! 404 You should bug the author to publish it (or use the name yourself!)"
+      - time: "14:32:20"
+        level: "ERROR"
+        message: "npm ERR! Failed at the babel-core@6.7.0 install script."
+      - time: "14:32:21"
+        level: "ERROR"
+        message: "✗ Build terminated with errors"
+      - time: "14:32:21"
+        level: "ERROR"
+        message: "✗ React application failed to compile"
+      - time: "14:32:21"
+        level: "ERROR"
+        message: "✗ Production deployment blocked"
+
+  - name: "Dependency Analysis"
+    type: text
+    content: |
+      🔍 DEPENDENCY TREE ANALYSIS
+      ============================
+
+      your-production-app
+      └── babel-core@6.7.0
+          └── babel-generator@6.7.0
+              └── left-pad@~1.0.2  ❌ NOT FOUND
+
+      📊 IMPACT ANALYSIS
+      ------------------
+      - Total packages depending on left-pad: 16,000+
+      - Direct dependencies: babel-generator, line-numbers, and others
+      - Indirect dependencies: react, babel, webpack, and ecosystem
+
+      📈 NPM REGISTRY STATUS
+      ----------------------
+      Last successful install: 13:45 UTC (47 minutes ago)
+      Package unpublished: 14:30 UTC (2 minutes ago)
+      Estimated affected projects: THOUSANDS GLOBALLY
+
+      ⚠️ BREAKING DEPENDENCIES
+      -------------------------
+      babel-core ❌ (blocks React, Angular, Vue builds)
+      babel-generator ❌
+      babel-cli ❌
+      line-numbers ❌
+      and 15,996+ more...
+
+      🔥 CRITICAL: This is affecting the entire JavaScript ecosystem!
+
+  - name: "left-pad.js (Original)"
+    type: code
+    content:
+      language: javascript
+      content: |
+        // The infamous 11 lines that broke the internet
+        module.exports = leftpad;
+
+        function leftpad (str, len, ch) {
+          str = String(str);
+          var i = -1;
+          if (!ch && ch !== 0) ch = ' ';
+          len = len - str.length;
+          while (++i < len) {
+            str = ch + str;
+          }
+          return str;
+        }
+
+        // Usage examples:
+        // leftpad('foo', 5)       => '  foo'
+        // leftpad('foobar', 6)    => 'foobar'
+        // leftpad(1, 2, '0')      => '01'
+        // leftpad(17, 5, '0')     => '00017'
+
+  - name: "Quick Fix Implementation"
+    type: code
+    content:
+      language: javascript
+      content: |
+        // EMERGENCY FIX: Vendor the left-pad functionality
+        // TODO: Implement the left-pad function locally
+
+        function leftPad(str, len, ch) {
+          // Your implementation here
+          return str;
+        }
+
+        module.exports = leftPad;
+
+        // Test cases (do not modify)
+        console.assert(leftPad('foo', 5) === '  foo', 'Test 1 failed');
+        console.assert(leftPad('foobar', 6) === 'foobar', 'Test 2 failed');
+        console.assert(leftPad(1, 2, '0') === '01', 'Test 3 failed');
+        console.assert(leftPad(17, 5, '0') === '00017', 'Test 4 failed');
+
+tasks:
+  - id: understand-impact
+    title: "Analyze the Dependency Chain"
+    type: multiple-choice
+    question: |
+      Looking at the dependency tree, why did removing a single 11-line package break
+      thousands of projects including React and Babel?
+    options:
+      - "Because left-pad had a security vulnerability that corrupted other packages"
+      - "Because babel-core directly depended on left-pad, and babel-core is used by thousands of projects"
+      - "Because npm's registry servers crashed from too many requests"
+      - "Because left-pad was a core Node.js module required by the runtime"
+    correct: 1
+    explanation: |
+      Correct! This demonstrates the "transitive dependency" problem:
+
+      - babel-generator depended on left-pad
+      - babel-core depended on babel-generator
+      - Thousands of projects depended on babel-core (React, Angular, Vue, etc.)
+
+      When left-pad disappeared, it broke babel-generator, which broke babel-core,
+      which broke the entire ecosystem. This cascade failure is a critical risk in
+      modern dependency management.
+
+      **Key Learning**: A single low-level dependency can have massive impact through
+      the dependency tree. This is why supply chain security is so important.
+
+  - id: identify-root-cause
+    title: "Identify the Root Cause"
+    type: multiple-choice
+    question: |
+      What was the fundamental architectural flaw that allowed this incident to happen?
+    options:
+      - "npm didn't have enough servers to handle the traffic"
+      - "The left-pad code had a critical bug"
+      - "Developers could unpublish packages that other projects depended on"
+      - "Package version numbers weren't following semantic versioning"
+    correct: 2
+    explanation: |
+      Exactly! Before this incident, npm allowed developers to unpublish packages at any time,
+      even if thousands of other packages depended on them.
+
+      **The Policy Flaw:**
+      - Authors had absolute control over their packages
+      - No protection for dependent packages
+      - No way to prevent breaking changes
+
+      **After This Incident, npm Changed Their Policy:**
+      - Can't unpublish if package is less than 24 hours old AND has dependencies
+      - Can't unpublish if package has been downloaded significantly
+      - Unpublishing is now treated as a breaking change requiring manual review
+
+      This was a wake-up call that package registries need to balance author rights
+      with ecosystem stability.
+
+  - id: implement-fix
+    title: "Implement Emergency Fix"
+    type: code-fix
+    target_tab: solution
+    instructions: |
+      The npm team is still working on republishing left-pad. You need to get your
+      builds working NOW by implementing left-pad functionality directly in your codebase.
+
+      Implement the `leftPad` function that:
+      1. Converts the input to a string
+      2. Pads it on the LEFT with the specified character (default: space)
+      3. Until it reaches the specified length
+      4. Returns the padded string
+
+      The test cases at the bottom must all pass.
+    validation:
+      contains:
+        - "String(str)"
+        - "while"
+      test_command: "node solution.js"
+      expected_output: ""
+
+  - id: long-term-solution
+    title: "Prevent Future Incidents"
+    type: multiple-choice
+    question: |
+      Your CTO asks: "How do we prevent this from happening to us again?"
+      What's the BEST long-term solution?
+    options:
+      - "Only use packages from verified authors with high download counts"
+      - "Copy all dependency code directly into your repository (vendor everything)"
+      - "Use package-lock.json to pin exact versions and consider dependency auditing tools"
+      - "Never use npm packages, write everything from scratch"
+    correct: 2
+    explanation: |
+      Great answer! The best approach combines multiple strategies:
+
+      **1. Lock Files (package-lock.json, yarn.lock)**
+      - Pins exact versions of ALL dependencies (including transitive ones)
+      - Ensures reproducible builds
+      - Prevents surprise updates
+
+      **2. Dependency Auditing**
+      - Regular `npm audit` or `yarn audit` checks
+      - Tools like Snyk, Dependabot, or Renovate
+      - Monitor for vulnerabilities and license issues
+
+      **3. Private Registry Mirror**
+      - Cache packages in your own registry
+      - Protects against package unpublishing
+      - Enables offline builds
+
+      **4. Minimal Dependencies**
+      - Question if you need a package for simple utilities
+      - Consider the dependency tree weight
+      - "Do we need a package to left-pad strings?"
+
+      **Why other options are problematic:**
+      - Option 1: Even popular packages can be unpublished or compromised
+      - Option 2: Creates maintenance burden and misses security updates
+      - Option 4: Reinventing the wheel is inefficient and error-prone
+
+      **The Real Lesson:**
+      This incident led to:
+      - npm policy changes around unpublishing
+      - Widespread adoption of lock files
+      - Industry focus on supply chain security
+      - Creation of the OpenSSF and similar initiatives
+
+completion:
+  summary: |
+    # 🎓 Lessons from the Left-Pad Incident
+
+    You've just experienced one of the most famous incidents in software engineering history.
+    On March 22, 2016, 11 lines of code broke the internet - not because of a bug, but because
+    of how modern software manages dependencies.
+
+    ## What You Learned
+
+    **1. Transitive Dependencies Are Dangerous**
+    - Your app depends on React
+    - React depends on Babel
+    - Babel depends on left-pad
+    - When left-pad vanished, everything broke
+
+    **2. Supply Chain Security Matters**
+    - Every dependency is a potential point of failure
+    - Package registries need policies to protect the ecosystem
+    - Unpublishing can be as dangerous as publishing malicious code
+
+    **3. Modern Solutions**
+    - Lock files (package-lock.json) pin exact versions
+    - npm now restricts unpublishing popular packages
+    - Private registries provide backup/caching
+    - Dependency auditing catches vulnerabilities
+
+    ## The Real Impact
+
+    This incident wasn't just a technical problem - it was a philosophical crisis:
+    - **Author Rights vs. Ecosystem Stability**: Should developers have absolute control over their packages?
+    - **Centralization Risks**: Is relying on a single registry (npm) dangerous?
+    - **Dependency Culture**: Should we really install a package for 11 lines of code?
+
+    ## Industry Changes
+
+    After left-pad, the JavaScript ecosystem evolved:
+    - ✅ npm changed unpublishing policies
+    - ✅ Lock files became standard practice
+    - ✅ Companies started using private registries
+    - ✅ Supply chain security became a priority
+    - ✅ Tools like Dependabot and Snyk gained adoption
+
+    ## The Irony
+
+    The most ironic part? Implementing left-pad yourself takes about 30 seconds.
+    This incident raised the question: "Do we really need packages for everything?"
+
+    Many developers now think twice before adding dependencies, asking:
+    - Is this dependency worth the risk?
+    - Could I implement this myself in reasonable time?
+    - What is the maintenance burden vs. benefit?
+
+    **Remember**: Every dependency you add is a bet that it will remain available,
+    secure, and maintained. Choose wisely!
+
+  resources:
+    - title: "I've Just Liberated My Modules (Azer's Blog Post)"
+      url: "https://kodfabrik.com/journal/i-ve-just-liberated-my-modules"
+    - title: "kik, left-pad, and npm (npm's Response)"
+      url: "https://blog.npmjs.org/post/141577284765/kik-left-pad-and-npm"
+    - title: "The npm Left-Pad Incident (Analysis)"
+      url: "https://www.theregister.com/2016/03/23/npm_left_pad_chaos/"
+    - title: "How one programmer broke the internet by deleting a tiny piece of code"
+      url: "https://qz.com/646467/how-one-programmer-broke-the-internet-by-deleting-a-tiny-piece-of-code"

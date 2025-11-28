@@ -1,0 +1,74 @@
+id: shopify-token-explosion
+level: intermediate
+title: "The Token Generation Storm"
+duration: "24 minutes"
+description: "An authentication service started leaking token creation jobs, overwhelming background queues. Front-end logins slowed globally."
+teaches:
+  - Background Job Queues
+  - Token Generation
+  - Queue Saturation
+  - Backpressure Mechanics
+modes:
+  - guided
+  - challenge
+
+context: |
+  # 🔐 Shopify Token Explosion
+
+  Login times have gone from 200ms to 45 seconds. Users are complaining they can't
+  log into stores. The auth service appears healthy but something is wrong.
+
+  Investigation shows: Token generation jobs are piling up in the background queue.
+  Instead of 1 token per login, the system is creating hundreds due to a retry bug.
+
+tabs:
+  - name: "Background Queue"
+    type: text
+    content: |
+      Job: generate_auth_token
+      Queue Depth: 847,239 jobs
+      Processing Rate: 100 jobs/sec
+      Expected Rate: 1000 jobs/sec
+      Est. Clear Time: 2.4 hours
+
+  - name: "token-generator.js"
+    type: code
+    content:
+      language: javascript
+      content: |
+        async function generateToken(userId) {
+          const job = await queue.enqueue({
+            type: 'generate_token',
+            userId: userId
+          });
+
+          // BUG: If job doesn't complete in 5s, creates another job!
+          const token = await job.waitFor({ timeout: 5000 });
+
+          if (!token) {
+            // Retry by creating ANOTHER job
+            return generateToken(userId);  // Recursive retry!
+          }
+
+          return token;
+        }
+
+tasks:
+  - id: identify-issue
+    title: "Why So Many Token Jobs?"
+    type: multiple-choice
+    question: "Why are there 847k token generation jobs for normal traffic?"
+    options:
+      - "A DDoS attack is creating fake login requests"
+      - "Timeout causes recursive retries, creating exponentially more jobs"
+      - "Users are refreshing login pages repeatedly"
+      - "Database is slow so tokens take forever to generate"
+    correct: 1
+    explanation: |
+      Each timeout creates a new job. That job might also timeout, creating another job.
+      This creates exponential job explosion: 1 → 2 → 4 → 8 → 16 → 32...
+
+completion:
+  summary: |
+    Recursive retries without limits create exponential growth.
+    Use job deduplication and max retry limits to prevent queue explosions.

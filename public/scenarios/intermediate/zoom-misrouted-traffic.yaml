@@ -1,0 +1,69 @@
+id: zoom-misrouted-traffic
+level: intermediate
+title: "The Geo-Routing Mishap"
+duration: "21 minutes"
+description: "Zoom accidentally routed non-China traffic through China servers, causing performance drops and compliance alarms."
+teaches:
+  - Geo-Routing
+  - Traffic Management
+  - Compliance Issues
+  - Region Misconfiguration
+modes:
+  - guided
+  - challenge
+
+context: |
+  # 🌍 Zoom Traffic Misrouting (2020)
+
+  Users in US/Europe report:
+  - Video calls laggy (500ms+ latency)
+  - Occasional connection drops
+  - Security teams raising compliance concerns
+
+  Root cause: Routing configuration placed a China datacenter into the global
+  traffic pool. Non-China users are being routed through China, adding latency
+  and violating data sovereignty policies.
+
+tabs:
+  - name: "Latency Reports"
+    type: text
+    content: |
+      User: New York → Expected: us-east (10ms)
+      Actual Route: New York → China → US (450ms) ⚠️
+
+      User: London → Expected: eu-west (15ms)
+      Actual Route: London → China → EU (520ms) ⚠️
+
+  - name: "traffic-router.yaml"
+    type: code
+    content:
+      language: yaml
+      content: |
+        routing_pools:
+          - name: global
+            regions:
+              - us-east-1
+              - us-west-2
+              - eu-west-1
+              - ap-southeast-1
+              - cn-north-1  # BUG: Should be in separate pool!
+
+        # China datacenter should ONLY serve China traffic
+        # But it's in global pool, so non-China users can be routed there
+
+tasks:
+  - id: fix-routing
+    title: "Fix Geo-Routing"
+    type: code-fix
+    target_tab: routing-config
+    instructions: |
+      Separate China region into its own routing pool.
+      Create a china-only pool that only serves CN traffic.
+    validation:
+      contains:
+        - "china"
+
+completion:
+  summary: |
+    Geo-routing misconfigurations can violate data sovereignty and add huge latency.
+    Always segregate regions with special compliance requirements.

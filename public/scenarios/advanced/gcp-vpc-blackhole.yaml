@@ -1,0 +1,669 @@
+id: gcp-vpc-blackhole
+level: advanced
+title: "When Automation Deleted the Network"
+duration: "25 minutes"
+description: "Investigate the 2019 Google Cloud incident where misconfigured network automation removed massive chunks of VPC routes, making entire regions unreachable for 3+ hours."
+teaches:
+  - Network Routing
+  - Automation Safety
+  - Partial Region Outages
+  - Blast Radius Control
+  - Change Validation
+featured: true
+viral: true
+modes:
+  - guided
+  - challenge
+real_incident:
+  company: "Google Cloud Platform"
+  date: "June 2, 2019"
+  impact: "Multiple GCP regions unreachable, network connectivity lost for thousands of customers"
+  duration: "~4 hours (partial recovery after 3 hours)"
+  root_cause: "Automated network configuration tool removed critical VPC routes due to configuration error"
+
+context: |
+  # 🌐 CRITICAL: Google Cloud Network Blackhole
+
+  **Date:** June 2, 2019, 12:25 PM PDT
+  **Severity:** CATASTROPHIC - Multi-Region Network Failure
+  **Status:** ACTIVE OUTAGE
+
+  ## The Situation
+
+  You're a Senior SRE for Google Cloud Platform. Your pager is exploding with alerts.
+  Customers worldwide are reporting that their VPCs (Virtual Private Clouds) are completely
+  unreachable. Instances can't communicate. Load balancers are offline. Everything in
+  certain regions has gone dark.
+
+  Looking at your monitoring, you see massive packet loss and complete network isolation
+  across multiple availability zones. Services that were working perfectly 5 minutes ago
+  are now completely unreachable.
+
+  ## What Happened?
+
+  An automated network maintenance tool was running routine configuration updates to
+  optimize VPC routing tables. The tool had a bug in its logic that miscalculated which
+  routes were "obsolete" and should be removed.
+
+  Instead of removing a few unused routes, it deleted thousands of active, critical routes
+  including:
+  - Default gateway routes
+  - Inter-zone connectivity routes
+  - Internet gateway routes
+  - Load balancer backend routes
+
+  The result? Massive portions of GCP's network became unreachable - a "blackhole" where
+  packets went in but never came out.
+
+  ## Your Mission
+
+  1. Identify why an automation tool removed critical network routes
+  2. Understand how route deletion caused complete network isolation
+  3. Trace the blast radius across multiple regions
+  4. Implement safeguards to prevent automation from destroying infrastructure
+  5. Design recovery procedures for large-scale network failures
+
+  This is one of the most severe cloud infrastructure outages in history.
+
+tabs:
+  - name: incident-timeline
+    type: text
+    content: |
+      📅 NETWORK BLACKHOLE TIMELINE
+      ==============================
+
+      **12:20 PM PDT** - Automation Starts
+      - Network optimization job begins
+      - Scanning VPC routing tables for cleanup
+      - Targets: "unused" and "redundant" routes
+
+      **12:25 PM** - Route Deletion Begins
+      - Automation identifies 4,782 routes as "obsolete"
+      - Begins deleting routes across multiple regions
+      - us-central1: 1,234 routes deleted
+      - us-east1: 987 routes deleted
+      - europe-west1: 1,456 routes deleted
+      - asia-southeast1: 1,105 routes deleted
+
+      **12:26 PM** - Network Failures Start
+      - Instances lose connectivity
+      - Load balancers fail health checks
+      - Inter-zone traffic fails
+      - Internet-bound traffic fails
+
+      **12:27 PM** - Cascade Begins
+      - Services detect backend failures
+      - Autoscalers try to launch new instances
+      - New instances also have no connectivity
+      - Problem spreads across regions
+
+      **12:30 PM** - Full Impact
+      - 85% of us-central1 isolated
+      - 72% of europe-west1 isolated
+      - Thousands of customer VPCs affected
+      - GCP Console partially unavailable
+
+      **12:35 PM** - Incident Declared
+      - SREs identify missing routes
+      - Automation tool identified as cause
+      - Tool immediately killed
+
+      **1:15 PM** - Route Restoration Begins
+      - Manual route table reconstruction
+      - Restoring from backups (complex process)
+      - Gradual connectivity returning
+
+      **3:30 PM** - Partial Recovery
+      - 80% of routes restored
+      - Most services recovering
+      - Some zones still degraded
+
+      **4:45 PM** - Full Recovery
+      - All routes restored
+      - Network fully operational
+      - Total outage: ~4 hours
+
+  - name: route-deletion-log
+    type: logs
+    content:
+      - time: "12:20:15"
+        level: "INFO"
+        message: "Starting VPC route optimization job"
+      - time: "12:20:16"
+        level: "INFO"
+        message: "Job ID: route-cleanup-20190602-1220"
+      - time: "12:20:17"
+        level: "INFO"
+        message: "Scanning routing tables across all regions..."
+      - time: "12:22:34"
+        level: "INFO"
+        message: "Scan complete. Found 47,823 total routes"
+      - time: "12:22:35"
+        level: "INFO"
+        message: "Analyzing route usage patterns..."
+      - time: "12:22:36"
+        level: "DEBUG"
+        message: "Checking last-used timestamps..."
+      - time: "12:23:45"
+        level: "WARN"
+        message: "Found 4,782 routes with last_used = NULL"
+      - time: "12:23:46"
+        level: "INFO"
+        message: "Marking routes for deletion:"
+      - time: "12:23:46"
+        level: "DEBUG"
+        message: "- default-internet-gateway-route (last_used: NULL)"
+      - time: "12:23:46"
+        level: "DEBUG"
+        message: "- inter-zone-route-az-a-to-b (last_used: NULL)"
+      - time: "12:23:46"
+        level: "DEBUG"
+        message: "- lb-backend-route-pool-1 (last_used: NULL)"
+      - time: "12:24:00"
+        level: "ERROR"
+        message: "⚠️  BUG: last_used column was never populated!"
+      - time: "12:24:00"
+        level: "ERROR"
+        message: "⚠️  All critical routes show as \"unused\""
+      - time: "12:24:00"
+        level: "ERROR"
+        message: "⚠️  About to delete ACTIVE routes!"
+      - time: "12:25:00"
+        level: "INFO"
+        message: "Beginning route deletion..."
+      - time: "12:25:01"
+        level: "INFO"
+        message: "Deleted route: default-internet-gateway-route"
+      - time: "12:25:01"
+        level: "INFO"
+        message: "Deleted route: inter-zone-route-az-a-to-b"
+      - time: "12:25:02"
+        level: "INFO"
+        message: "Deleted route: lb-backend-route-pool-1"
+      - time: "12:25:02"
+        level: "INFO"
+        message: "Deleted route: subnet-10-0-1-0-route"
+      - time: "12:26:15"
+        level: "INFO"
+        message: "Route deletion complete"
+      - time: "12:26:16"
+        level: "INFO"
+        message: "4,782 routes removed"
+      - time: "12:26:17"
+        level: "INFO"
+        message: "Estimated capacity saved: 0.3%"
+      - time: "12:26:30"
+        level: "CRITICAL"
+        message: "Massive network failures detected"
+      - time: "12:26:31"
+        level: "CRITICAL"
+        message: "Connectivity lost across multiple regions"
+      - time: "12:26:32"
+        level: "CRITICAL"
+        message: "EMERGENCY: KILLING JOB"
+  - name: route-analysis
+    type: text
+    content: |
+      🗺️  CRITICAL ROUTES THAT WERE DELETED
+      ======================================
+
+      ❌ Default Internet Gateway Routes (482 routes)
+      - Purpose: Allow VMs to access internet
+      - Impact: All outbound internet traffic failed
+      - Affected: Every VPC in region
+
+      ❌ Inter-Zone Routes (1,234 routes)
+      - Purpose: Enable communication between availability zones
+      - Impact: Multi-zone services broken
+      - Affected: Distributed databases, load balancers
+
+      ❌ Load Balancer Backend Routes (987 routes)
+      - Purpose: Route traffic from LB to backends
+      - Impact: All load balancers failed health checks
+      - Affected: Customer-facing applications
+
+      ❌ Subnet Gateway Routes (1,456 routes)
+      - Purpose: Route traffic within subnets
+      - Impact: VMs in same subnet can't communicate
+      - Affected: Every customer VPC
+
+      ❌ VPN Tunnel Routes (623 routes)
+      - Purpose: Hybrid cloud connectivity
+      - Impact: On-prem to cloud connectivity severed
+      - Affected: Enterprise hybrid deployments
+
+      📊 BLAST RADIUS
+      ================
+      - Regions affected: 4 (us-central1, us-east1, europe-west1, asia-southeast1)
+      - Customer VPCs impacted: ~8,000
+      - Total routes deleted: 4,782
+      - Restoration time: 4 hours
+      - Estimated customer impact: Thousands of businesses
+
+  - name: automation-code
+    type: code
+    editable: true
+    content:
+      language: python
+      content: |
+        # GCP VPC Route Cleanup Automation
+        # BUG: Deletes active routes due to missing usage tracking
+
+        import datetime
+        from google.cloud import compute_v1
+
+        def cleanup_unused_routes(project_id, regions):
+            """
+            Remove unused routes to optimize routing table size.
+
+            INTENDED: Delete routes that haven't been used in 90 days
+            BUG: last_used field was never populated, so ALL routes appear unused!
+            """
+
+            routes_to_delete = []
+
+            for region in regions:
+                routes = get_routes(project_id, region)
+
+                for route in routes:
+                    # BUG: last_used is NULL for all routes!
+                    # This was supposed to be populated by traffic monitoring
+                    # but the monitoring integration was never completed
+
+                    if route.last_used is None:
+                        # DANGEROUS: Assumes NULL = unused
+                        # Reality: NULL = never tracked!
+                        routes_to_delete.append(route)
+                        continue
+
+                    # This code never executes because last_used is always NULL
+                    days_since_use = (datetime.now() - route.last_used).days
+                    if days_since_use > 90:
+                        routes_to_delete.append(route)
+
+            # Missing validation: Are we about to delete critical routes?
+            # Missing safeguard: Dry-run mode
+            # Missing check: Are these default/system routes?
+
+            print(f"Deleting {len(routes_to_delete)} routes")
+
+            # DANGER: No confirmation, no rollback, no validation
+            for route in routes_to_delete:
+                delete_route(route.name)
+
+            return len(routes_to_delete)
+
+        # TODO: Add safety checks before deletion
+        # TODO: Validate route is truly unused
+        # TODO: Never delete default/critical routes
+
+tasks:
+  - id: identify-bug
+    title: "Identify the Automation Bug"
+    type: multiple-choice
+    question: |
+      Looking at the automation code and logs, what caused the tool to delete
+      thousands of active, critical routes?
+    options:
+      - "A hacker compromised the automation system and maliciously deleted routes"
+      - "The last_used field was never populated, so all routes appeared unused and were deleted"
+      - "The automation system had a memory leak that corrupted the routing data"
+      - "Google engineers manually triggered the wrong automation script"
+    correct: 1
+    explanation: |
+      Exactly! This is a classic "garbage in, garbage out" automation failure:
+
+      **The Bug:**
+      ```python
+      if route.last_used is None:
+          # Assumes NULL = unused
+          # Reality: NULL = never tracked!
+          routes_to_delete.append(route)
+      ```
+
+      **What Went Wrong:**
+      1. Traffic monitoring was supposed to populate `last_used` field
+      2. Monitoring integration was never completed
+      3. ALL routes had `last_used = NULL`
+      4. Automation interpreted NULL as "never used"
+      5. Deleted all routes including critical system routes
+
+      **The Cascading Failure:**
+      ```
+      Route deleted
+      ↓
+      No path to destination
+      ↓
+      Packets dropped (blackhole)
+      ↓
+      Services unreachable
+      ↓
+      Health checks fail
+      ↓
+      Autoscaling tries to help
+      ↓
+      New instances also have no routes
+      ↓
+      Problem spreads
+      ```
+
+      **What Should Have Been Checked:**
+      - ✅ Is `last_used` field actually being populated?
+      - ✅ Are there any routes that are NEVER safe to delete?
+      - ✅ Should deletion of 4,782 routes trigger a warning?
+      - ✅ Is there a dry-run mode to preview changes?
+      - ✅ Can we restore quickly if something goes wrong?
+
+      **The Irony:**
+      The automation was trying to "optimize" by removing 0.3% capacity.
+      Instead, it caused a 4-hour outage affecting thousands of customers.
+
+  - id: understand-blast-radius
+    title: "Why Multiple Regions?"
+    type: multiple-choice
+    question: |
+      Why did deleting routes in one region affect multiple regions across
+      different continents?
+    options:
+      - "All regions share the same physical network infrastructure"
+      - "The automation tool ran in parallel across all regions simultaneously"
+      - "Network failures cascaded from one region to others"
+      - "The bug only affected one region, media reports were exaggerated"
+    correct: 1
+    explanation: |
+      Correct! The automation was designed to work across all regions:
+
+      **The Parallel Execution:**
+      ```python
+      for region in regions:
+          routes = get_routes(project_id, region)
+          # Process each region in parallel
+      ```
+
+      **Regions Affected:**
+      - us-central1: 1,234 routes deleted
+      - us-east1: 987 routes deleted
+      - europe-west1: 1,456 routes deleted
+      - asia-southeast1: 1,105 routes deleted
+
+      **Why This Amplified the Impact:**
+      - Single bug affected all regions simultaneously
+      - No gradual rollout (all at once)
+      - No regional isolation
+      - No "test in one region first" approach
+
+      **Better Approach:**
+      ```
+      1. Dry-run in us-central1 (preview only)
+      2. If safe, execute in us-central1
+      3. Monitor for 1 hour
+      4. If successful, proceed to next region
+      5. Continue region by region with monitoring
+      ```
+
+      **The Blast Radius Control Missing:**
+      - No regional batching
+      - No progressive rollout
+      - No "canary" region for testing
+      - All-or-nothing execution
+
+      **What Google Changed:**
+      After this incident:
+      - ✅ Automation must start with single zone
+      - ✅ Mandatory monitoring period between zones
+      - ✅ Automatic rollback on connectivity loss
+      - ✅ Critical routes flagged as "never delete"
+      - ✅ Change approval thresholds (>100 routes = manual review)
+
+  - id: fix-automation
+    title: "Add Safety Checks"
+    type: code-fix
+    target_tab: automation-code
+    instructions: |
+      The automation code is missing critical safety checks before deleting routes.
+
+      Add validation to prevent deleting critical routes:
+      1. Check if we're about to delete more than 100 routes (suspicious!)
+      2. Never delete routes with names containing "default" or "gateway"
+      3. Add a dry-run mode that previews without deleting
+
+      Add at least 2 safety checks before the deletion loop.
+    validation:
+      contains:
+        - "if"
+        - "len(routes_to_delete)"
+        - "return"
+
+  - id: recovery-strategy
+    title: "Design Recovery Procedures"
+    type: multiple-choice
+    question: |
+      Network routes were deleted. How should GCP recover quickly from this
+      type of infrastructure automation failure?
+    options:
+      - "Manually recreate each route one by one across all regions"
+      - "Restart all network infrastructure and let it rebuild routes automatically"
+      - "Restore routes from automated backups, implement rollback procedures, and add change validation"
+      - "Wait for customers to report specific broken routes and fix those individually"
+    correct: 2
+    explanation: |
+      Perfect! Recovery from automation disasters requires multiple layers:
+
+      **1. Automated Route Backups**
+      ```python
+      # Before ANY automation runs:
+      backup = snapshot_all_routes()
+      backup.save_to_gcs(f"route-backup-{timestamp}")
+
+      # If automation fails:
+      restore_from_backup(backup)
+      ```
+
+      **2. Atomic Operations with Rollback**
+      ```python
+      try:
+          transaction = begin_route_changes()
+          for route in routes_to_delete:
+              transaction.mark_for_deletion(route)
+
+          # Verify connectivity still works
+          if not connectivity_check():
+              transaction.rollback()
+              raise Exception("Connectivity lost, rolling back")
+
+          transaction.commit()
+      except Exception:
+          transaction.rollback()
+      ```
+
+      **3. Change Validation**
+      ```python
+      # Before deleting routes:
+      def validate_change(routes_to_delete):
+          if len(routes_to_delete) > 100:
+              return "BLOCKED: Suspicious bulk deletion"
+
+          for route in routes_to_delete:
+              if route.is_critical():
+                  return f"BLOCKED: Cannot delete critical route {route.name}"
+
+              if route.is_default():
+                  return f"BLOCKED: Cannot delete default route {route.name}"
+
+          return "APPROVED"
+      ```
+
+      **4. Progressive Rollout**
+      ```python
+      # Don't change all regions at once
+      for region in regions:
+          apply_changes(region)
+          sleep(3600)  # Wait 1 hour
+
+          if error_rate_increased():
+              rollback(region)
+              abort("Changes caused errors in {region}")
+      ```
+
+      **5. Kill Switch**
+      ```python
+      # Monitor connectivity during changes
+      while making_changes:
+          if packet_loss > 5%:
+              EMERGENCY_STOP()
+              rollback_all_changes()
+              alert_oncall("Automation caused network degradation")
+      ```
+
+      **6. Dry-Run Mode**
+      ```python
+      if dry_run:
+          print(f"WOULD DELETE: {len(routes_to_delete)} routes")
+          print("Route names:", [r.name for r in routes_to_delete])
+          return  # Don't actually delete
+      ```
+
+      **What Google Actually Implemented:**
+      - ✅ Continuous route table backups (every 5 minutes)
+      - ✅ Mandatory dry-run before any bulk changes
+      - ✅ Critical route protection (cannot be deleted by automation)
+      - ✅ Change size limits (>100 routes = human approval)
+      - ✅ Real-time connectivity monitoring during changes
+      - ✅ Automatic rollback on connectivity degradation
+      - ✅ Regional progressive rollout (one region at a time)
+
+      **The Golden Rule of Infrastructure Automation:**
+      "Any automation powerful enough to fix things quickly
+      is powerful enough to break things quickly."
+
+      Always design for rollback before designing for execution.
+
+completion:
+  summary: |
+    # 🌐 The Day Automation Deleted Google's Network
+
+    You just investigated one of the most severe cloud infrastructure failures.
+    An automation tool meant to "optimize" network routing instead deleted
+    thousands of critical routes, making entire GCP regions unreachable.
+
+    ## What Happened
+
+    **The Perfect Storm:**
+    1. ❌ Traffic monitoring integration never completed
+    2. ❌ `last_used` field never populated (always NULL)
+    3. ❌ Automation interpreted NULL as "unused"
+    4. ❌ No validation for critical/default routes
+    5. ❌ Ran across all regions simultaneously
+    6. ❌ No dry-run mode, no rollback procedure
+
+    **The Result:**
+    - 4,782 routes deleted in minutes
+    - 4 regions affected simultaneously
+    - 8,000+ customer VPCs isolated
+    - 4 hours to restore service
+    - One of GCP's worst outages
+
+    ## The Numbers
+
+    - **Routes deleted**: 4,782
+    - **Regions affected**: 4
+    - **Customer VPCs impacted**: ~8,000
+    - **Downtime**: 4 hours
+    - **Recovery method**: Manual restoration from backups
+    - **Automation optimization achieved**: 0.3% capacity saved
+    - **Actual result**: Massive global outage
+
+    ## What We Learned
+
+    **1. Automation Needs Safeguards**
+    Powerful automation needs equally powerful safety mechanisms:
+    - Dry-run mode (preview changes)
+    - Rollback procedures (undo quickly)
+    - Validation checks (prevent bad changes)
+    - Progressive rollout (limit blast radius)
+    - Kill switches (stop on errors)
+
+    **2. Data Quality Matters**
+    ```python
+    if route.last_used is None:
+        delete(route)  # DANGEROUS!
+    ```
+    NULL might mean "unused" OR "never tracked."
+    Always validate your data before using it for decisions.
+
+    **3. Critical Infrastructure Needs Protection**
+    - Default routes should be flagged as "protected"
+    - Gateway routes should never be auto-deleted
+    - System routes should require manual approval
+    - Bulk operations need thresholds
+
+    **4. Test Your Assumptions**
+    The automation assumed traffic monitoring was working.
+    It wasn't. No one checked. 4-hour outage resulted.
+
+    **5. Blast Radius Control Is Essential**
+    Running automation across all regions simultaneously
+    turned a regional issue into a global catastrophe.
+
+    ## Google's Response
+
+    **Immediate (Day 1):**
+    - Killed automation tool
+    - Manual route restoration from backups
+    - Transparent postmortem published
+
+    **Short-term (Week 1):**
+    - Protected critical routes from automation
+    - Added validation for bulk deletions
+    - Implemented mandatory dry-run mode
+
+    **Long-term (Month 1-3):**
+    - Continuous route table backups
+    - Progressive regional rollout required
+    - Real-time connectivity monitoring
+    - Automatic rollback on degradation
+    - Change size limits with human approval
+    - "Critical route" tagging system
+
+    ## Industry Impact
+
+    This incident influenced cloud infrastructure practices:
+    - ✅ All major clouds now protect system routes
+    - ✅ Automation requires progressive rollout
+    - ✅ Mandatory dry-run for infrastructure changes
+    - ✅ Continuous backups of network configuration
+    - ✅ Real-time validation during changes
+
+    ## The Irony
+
+    **Goal:** Save 0.3% network capacity
+    **Result:** 4-hour global outage
+
+    The automation was trying to be helpful.
+    Instead, it demonstrated that powerful automation
+    without equally powerful safeguards is a disaster
+    waiting to happen.
+
+    ## Remember
+
+    **When building infrastructure automation:**
+    - Validate data quality before using it
+    - Implement dry-run mode (test before execute)
+    - Add rollback procedures (undo quickly)
+    - Protect critical resources (some things shouldn't be automated)
+    - Progressive rollout (one region at a time)
+    - Monitor during changes (stop if things break)
+
+    **The automation paradox:**
+    - Automation makes things faster and easier
+    - But mistakes are also faster and easier
+    - The same speed that helps you also hurts you
+    - Safety mechanisms must match automation power
+
+  resources:
+    - title: "Google Cloud Incident #19009 (Official Postmortem)"
+      url: "https://status.cloud.google.com/incidents/6PM5mNd43NbMqjCZ5REh"
+    - title: "Building Safe Infrastructure Automation"
+      url: "https://cloud.google.com/blog/products/management-tools/sre-principles"
+    - title: "Network Automation Best Practices"
+      url: "https://networkautomation.forum/best-practices"

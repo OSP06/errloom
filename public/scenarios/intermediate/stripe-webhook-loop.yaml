@@ -1,0 +1,76 @@
+id: stripe-webhook-loop
+level: intermediate
+title: "The Infinite Webhook Loop"
+duration: "20 minutes"
+description: "A third-party integration returned malformed responses, causing Stripe to retry webhooks indefinitely and spike internal load."
+teaches:
+  - Webhook Retry Logic
+  - Circuit Breakers
+  - External Integration Safety
+  - Exponential Backoff
+modes:
+  - guided
+  - challenge
+
+context: |
+  # 🔁 Stripe Webhook Infinite Retry
+
+  A customer's webhook endpoint is returning HTTP 500 errors. Stripe's retry logic
+  keeps retrying... and retrying... and retrying. Forever.
+
+  The webhook queue is growing massive. Internal systems are overloaded processing
+  retries. New webhooks are delayed hours.
+
+tabs:
+  - name: "Webhook Stats"
+    type: text
+    content: |
+      Webhook: payment_intent.succeeded
+      Target: https://customer.com/webhooks/stripe
+      Status: FAILING (HTTP 500)
+
+      Retry Count: 47,823
+      Queue Depth: 2.4 million pending webhooks
+      Oldest Retry: 14 hours ago
+
+  - name: "webhook-retry.js"
+    type: code
+    content:
+      language: javascript
+      content: |
+        async function retryWebhook(webhook) {
+          let attempts = 0;
+
+          while (true) {  // BUG: No max retries!
+            try {
+              await sendWebhook(webhook);
+              return;
+            } catch (error) {
+              attempts++;
+              await sleep(1000);  // BUG: No exponential backoff
+              // Retries forever!
+            }
+          }
+        }
+
+tasks:
+  - id: fix-retry
+    title: "Fix Retry Logic"
+    type: code-fix
+    target_tab: retry-code
+    instructions: |
+      Add proper retry logic:
+      1. Max retry limit (e.g., 10 attempts)
+      2. Exponential backoff
+      3. Give up after limit reached
+    validation:
+      contains:
+        - "attempts"
+        - "break"
+
+completion:
+  summary: |
+    Infinite retries can DoS your own system. Always have:
+    - Max retry limits
+    - Exponential backoff
+    - Dead letter queues for permanent failures

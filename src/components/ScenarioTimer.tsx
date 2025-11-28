@@ -95,36 +95,36 @@ export function PerformanceSummary({
   const timeDiff = Math.abs(timeElapsed - targetSeconds);
 
   return (
-    <div className="mt-6 bg-linear-to-r from-orange-50 to-red-50 rounded-xl p-6 border-2 border-orange-200">
-      <h3 className="font-bold text-lg mb-4 text-gray-900">Your Performance</h3>
+    <div className="mt-6 bg-linear-to-r from-orange-900/30 to-red-900/30 rounded-xl p-6 border-2 border-orange-500/50">
+      <h3 className="font-bold text-lg mb-4 text-white">Your Performance</h3>
 
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div>
-          <p className="text-3xl font-bold text-orange-600">{formatTime(timeElapsed)}</p>
-          <p className="text-sm text-gray-600">Your Time</p>
+          <p className="text-3xl font-bold text-orange-400">{formatTime(timeElapsed)}</p>
+          <p className="text-sm text-gray-400">Your Time</p>
         </div>
         <div>
-          <p className="text-3xl font-bold text-gray-400">{targetTime} min</p>
-          <p className="text-sm text-gray-600">Target Time</p>
+          <p className="text-3xl font-bold text-gray-300">{targetTime} min</p>
+          <p className="text-sm text-gray-400">Target Time</p>
         </div>
         {personalBest && (
           <div>
-            <p className="text-3xl font-bold text-purple-600">{formatTime(personalBest)}</p>
-            <p className="text-sm text-gray-600">Your Best</p>
+            <p className="text-3xl font-bold text-purple-400">{formatTime(personalBest)}</p>
+            <p className="text-sm text-gray-400">Your Best</p>
           </div>
         )}
       </div>
 
       {beatTarget ? (
-        <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
-          <Trophy className="w-5 h-5" />
+        <div className="flex items-center gap-2 text-green-300 bg-green-900/30 p-3 rounded-lg border border-green-500/50">
+          <Trophy className="w-5 h-5 text-green-400" />
           <span className="font-semibold">
             Fast Solver! Beat target by {formatTime(timeDiff)}
           </span>
         </div>
       ) : (
-        <div className="flex items-center gap-2 text-orange-600 bg-orange-50 p-3 rounded-lg border border-orange-200">
-          <Target className="w-5 h-5" />
+        <div className="flex items-center gap-2 text-orange-300 bg-orange-900/30 p-3 rounded-lg border border-orange-500/50">
+          <Target className="w-5 h-5 text-orange-400" />
           <span className="font-semibold">
             Try again to beat the target time! ({formatTime(timeDiff)} over)
           </span>

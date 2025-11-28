@@ -1,0 +1,177 @@
+id: paypal-zero-amount
+level: beginner
+title: "The Zero Dollar Fraud Alert"
+duration: "17 minutes"
+description: "A malformed transaction payload tricked PayPal into treating payments as zero-value, triggering fraud rules and blocking legitimate transactions."
+teaches:
+  - Input Validation
+  - Data Sanitization
+  - Defensive Programming
+  - Field Parsing
+modes:
+  - guided
+  - challenge
+
+context: |
+  # 💳 PayPal Zero Amount Crisis
+
+  **Date:** June 2019
+  **Status:** Payment processing blocked
+
+  PayPal's fraud detection system is going crazy. Thousands of legitimate transactions
+  are being flagged as "$0.00 fraud attempts" and automatically blocked.
+
+  Customers are complaining they can't pay for items. Merchants are losing sales.
+  The fraud team is overwhelmed with false positives.
+
+  ## What Happened
+
+  A third-party integration started sending payment amounts in a non-standard format.
+  Instead of `"amount": 49.99`, they sent `"amount": "49.99 USD"` (string with currency).
+
+  The amount parser failed silently, defaulted to `0.00`, and every transaction looked
+  like a $0 payment - which fraud rules correctly flagged as suspicious.
+
+tabs:
+  - name: fraud-alerts
+    type: logs
+    content:
+      - time: "14:32:20"
+        level: "CRITICAL"
+        message: "847 fraud alerts in last minute"
+      - time: "14:32:25"
+        level: "CRITICAL"
+        message: "100% of third-party integration payments blocked"
+  - name: transaction-data
+    type: code
+    content:
+      language: json
+      content: |
+        {
+          "transaction_id": "TXN_12345",
+          "user_id": "alice@example.com",
+          "merchant_id": "shop_example",
+          "amount": "49.99 USD",     // ⚠️ Should be: 49.99 (number)
+          "currency": "USD",
+          "timestamp": "2019-06-15T14:32:11Z"
+        }
+
+        // PayPal's parser expects:
+        // "amount": 49.99  (number type)
+
+        // Third-party sends:
+        // "amount": "49.99 USD"  (string with currency)
+
+        // Parser behavior:
+        // parseFloat("49.99 USD") → NaN → defaults to 0.00
+
+  - name: amount-parser
+    type: code
+    editable: true
+    content:
+      language: javascript
+      content: |
+        function parseTransactionAmount(payload) {
+          // BUG: No validation of amount format
+          // Assumes amount is always a clean number
+
+          const amount = parseFloat(payload.amount);
+
+          // BUG: Doesn't check for NaN!
+          // If parsing fails, amount becomes NaN
+
+          // BUG: No validation that amount > 0
+          return amount || 0.00;  // NaN becomes 0.00
+        }
+
+        // BETTER IMPLEMENTATION:
+        // function parseTransactionAmount(payload) {
+        //   let amount = payload.amount;
+        //
+        //   // Handle string amounts
+        //   if (typeof amount === 'string') {
+        //     // Strip currency symbols and text
+        //     amount = amount.replace(/[^0-9.]/g, '');
+        //     amount = parseFloat(amount);
+        //   }
+        //
+        //   // Validate
+        //   if (isNaN(amount) || amount <= 0) {
+        //     throw new Error(`Invalid amount: ${payload.amount}`);
+        //   }
+        //
+        //   return amount;
+        // }
+
+tasks:
+  - id: identify-bug
+    title: "Why Are Amounts Zero?"
+    type: multiple-choice
+    question: |
+      Why are legitimate $49.99 transactions being parsed as $0.00?
+    options:
+      - "A database corruption set all amounts to zero"
+      - "parseFloat fails on '49.99 USD' format, returns NaN, which defaults to 0.00"
+      - "The third-party integration is malicious and sending zero amounts"
+      - "A currency conversion bug is resetting amounts"
+    correct: 1
+    explanation: |
+      `parseFloat("49.99 USD")` returns `NaN` because it can't parse the "USD" part.
+      The code then uses `amount || 0.00` which converts `NaN` to `0.00`.
+
+      Fraud rules correctly flag $0.00 transactions as suspicious!
+
+  - id: fix-parser
+    title: "Fix the Amount Parser"
+    type: code-fix
+    target_tab: amount-parser
+    instructions: |
+      Fix the parser to:
+      1. Handle both number and string amount formats
+      2. Strip currency text from strings
+      3. Validate amount is a valid number > 0
+      4. Throw error for invalid amounts (don't default to 0)
+    validation:
+      contains:
+        - "isNaN"
+        - "throw"
+        - "replace"
+
+  - id: defensive-programming
+    title: "Prevent Data Issues"
+    type: multiple-choice
+    question: |
+      How should PayPal handle varying third-party data formats?
+    options:
+      - "Reject any integration that doesn't send perfect data"
+      - "Always default invalid values to 0.00"
+      - "Validate and sanitize input, throw errors for invalid data, document expected formats"
+      - "Process all data as-is without validation"
+    correct: 2
+    explanation: |
+      Best practices:
+      - Validate ALL input data (never trust external systems)
+      - Sanitize and normalize different formats when possible
+      - Throw clear errors for truly invalid data
+      - Document expected formats in API docs
+      - Use schema validation (JSON Schema, etc.)
+      - Never silently default to dangerous values like $0.00
+
+      The `|| 0.00` pattern is dangerous for financial data!
+
+completion:
+  summary: |
+    # The $0.00 Lesson
+
+    Silent failures in data parsing are dangerous, especially for financial systems.
+    - Validate all input data
+    - Never default invalid amounts to 0
+    - Check for NaN after parsing
+    - Throw errors for invalid data (fail loudly!)
+    - Document expected data formats
+
+    Remember: `parseFloat("49.99 USD")` → `NaN`, not `49.99`!
+
+  resources:
+    - title: "Input Validation Best Practices"
+      url: "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html"

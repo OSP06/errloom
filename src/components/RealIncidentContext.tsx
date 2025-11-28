@@ -68,22 +68,22 @@ export function RealIncidentContext({
       </div>
 
       {/* Story */}
-      <div className="bg-white rounded-2xl p-8 border-2 border-gray-200">
-        <h3 className="text-2xl font-bold mb-4 text-gray-900">The Full Story</h3>
+      <div className="bg-gray-800 rounded-2xl p-8 border-2 border-gray-700">
+        <h3 className="text-2xl font-bold mb-4 text-white">The Full Story</h3>
         <div className="prose max-w-none">
-          <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+          <p className="text-gray-300 leading-relaxed whitespace-pre-line">
             {story}
           </p>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <h4 className="font-bold text-gray-900 mb-2">Root Cause</h4>
-          <p className="text-gray-700">{cause}</p>
+        <div className="mt-6 pt-6 border-t border-gray-700">
+          <h4 className="font-bold text-white mb-2">Root Cause</h4>
+          <p className="text-gray-300">{cause}</p>
         </div>
       </div>
 
       {/* What You Learned */}
-      <div className="bg-green-50 rounded-2xl p-8 border-2 border-green-200">
+      <div className="bg-green-900/20 rounded-2xl p-8 border-2 border-green-700/50">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shrink-0">
             <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -91,24 +91,24 @@ export function RealIncidentContext({
             </svg>
           </div>
           <div>
-            <h3 className="text-xl font-bold mb-4 text-green-900">
+            <h3 className="text-xl font-bold mb-4 text-green-400">
               How Your Skills Prevent This
             </h3>
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-300 mb-4">
               The scenario you just completed teaches you to recognize and fix the exact
               issues that caused this real-world disaster. You now have the knowledge to:
             </p>
-            <ul className="space-y-2 text-gray-700">
+            <ul className="space-y-2 text-gray-300">
               <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold">✓</span>
+                <span className="text-green-400 font-bold">✓</span>
                 <span>Identify the warning signs before catastrophe strikes</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold">✓</span>
+                <span className="text-green-400 font-bold">✓</span>
                 <span>Implement safeguards that prevent these failures</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold">✓</span>
+                <span className="text-green-400 font-bold">✓</span>
                 <span>Respond effectively when incidents do occur</span>
               </li>
             </ul>

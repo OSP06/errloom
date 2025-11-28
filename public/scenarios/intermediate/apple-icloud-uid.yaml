@@ -1,0 +1,84 @@
+id: apple-icloud-uid
+level: intermediate
+title: "The Duplicate UID Disaster"
+duration: "25 minutes"
+description: "iCloud accounts were briefly assigned conflicting internal IDs, causing cross-account visibility issues. Users saw other people's photos."
+teaches:
+  - UUID Generation
+  - Identity Collision
+  - Data Isolation
+  - ID Generation Safety
+modes:
+  - guided
+  - challenge
+
+context: |
+  # 🆔 iCloud Duplicate UID Crisis
+
+  Support tickets flooding in: Users can see photos from strangers' accounts!
+  This is a catastrophic privacy breach.
+
+  Investigation reveals: A bug in UID generation caused ID collisions.
+  Multiple accounts got assigned the same internal user ID.
+
+tabs:
+  - name: "UID Generation Log"
+    type: logs
+    content:
+      - time: "09:15:23"
+        level: "INFO"
+        message: "Generating UID for user: alice@icloud.com"
+      - time: "09:15:23"
+        level: "INFO"
+        message: "UID: 1a2b3c4d-5e6f-7890-abcd-ef1234567890"
+      - time: "09:15:24"
+        level: "INFO"
+        message: "Generating UID for user: bob@icloud.com"
+      - time: "09:15:24"
+        level: "WARN"
+        message: "UID: 1a2b3c4d-5e6f-7890-abcd-ef1234567890 ⚠️ DUPLICATE!"
+      - time: "09:15:25"
+        level: "ERROR"
+        message: "Both users have same UID"
+      - time: "09:15:26"
+        level: "ERROR"
+        message: "Result: Data isolation broken"
+
+  - name: "uid-generator.js"
+    type: code
+    content:
+      language: javascript
+      content: |
+        function generateUserID() {
+            // BUG: Using timestamp + random, but not enough entropy!
+            const timestamp = Math.floor(Date.now() / 1000);  // Seconds
+            const random = Math.floor(Math.random() * 1000);  // 0-999
+
+            return `${timestamp}-${random}`;
+
+            // PROBLEM: If two users register in same second,
+            // 1/1000 chance of collision! Not enough randomness.
+          }
+
+          // BETTER: Use crypto.randomUUID() or similar
+          // Or: Timestamp in microseconds + more random bits
+
+tasks:
+  - id: fix-uid-generation
+    title: "Fix UID Generator"
+    type: code-fix
+    target_tab: uid-generator
+    instructions: |
+      Fix the UID generator to prevent collisions.
+      Use proper UUID generation or increase entropy significantly.
+    validation:
+      contains:
+        - "UUID"
+
+completion:
+  summary: |
+    ID collisions are catastrophic for data isolation. Always use:
+    - Proper UUID generation (crypto.randomUUID())
+    - High entropy sources
+    - Collision detection and retry logic
+    - Never rely on timestamps + small random numbers

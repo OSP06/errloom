@@ -1,0 +1,132 @@
+id: steam-inventory-outage
+level: beginner
+title: "The Vanishing Inventory"
+duration: "18 minutes"
+description: "A faulty deployment made Steam marketplace inventories appear empty. Players thought their items were deleted. Debug the deployment inconsistency."
+teaches:
+  - Deployment Rollbacks
+  - Database Consistency
+  - Cache Invalidation
+  - User Communication
+modes:
+  - guided
+  - challenge
+
+context: |
+  # 🎮 Steam Marketplace Crisis
+
+  **Date:** November 2020
+  **Status:** CRITICAL - Users reporting empty inventories
+
+  You're debugging a Steam marketplace deployment. After releasing a new inventory
+  system update, thousands of users are reporting their inventories are completely empty.
+  Trading cards, game items, everything appears gone.
+
+  Panic is spreading across social media. Users think their items were deleted or stolen.
+
+  ## What Actually Happened
+
+  A new caching layer was deployed but the cache keys changed format. The app shows
+  cached data (which is empty for the new key format) instead of fetching from the database.
+  Items aren't deleted - they're just not being displayed.
+
+tabs:
+  - name: user-reports
+    type: logs
+    content:
+      - time: "15:25:22"
+        level: "PANIC"
+        message: "Twitter trending: #SteamDown #InventoryGone"
+  - name: deployment-log
+    type: logs
+    content:
+      - time: "15:20:00"
+        level: "ERROR"
+        message: "Cache misses at 100%"
+      - time: "15:20:01"
+        level: "ERROR"
+        message: "Showing empty inventories (no cached data)"
+  - name: cache-code
+    type: code
+    editable: true
+    content:
+      language: javascript
+      content: |
+        // Inventory cache implementation
+        const CACHE_KEY_VERSION = 'v2'; // Changed from v1
+
+        async function getUserInventory(userId) {
+          const cacheKey = `user:${userId}:${CACHE_KEY_VERSION}`;
+
+          // Try cache first
+          const cached = await redis.get(cacheKey);
+          if (cached) {
+            return JSON.parse(cached);
+          }
+
+          // Cache miss - should fetch from DB
+          // BUG: Returns empty array instead of fetching from DB!
+          return [];
+
+          // MISSING: Fetch from database and populate cache
+          // const items = await database.getInventory(userId);
+          // await redis.set(cacheKey, JSON.stringify(items));
+          // return items;
+        }
+
+tasks:
+  - id: identify-issue
+    title: "Why Are Inventories Empty?"
+    type: multiple-choice
+    question: |
+      Users see empty inventories after the deployment. What's the root cause?
+    options:
+      - "The database was accidentally wiped during deployment"
+      - "Cache key format changed, causing cache misses that return empty arrays instead of fetching from DB"
+      - "A hacker deleted all user inventories"
+      - "The deployment introduced a bug that deletes items"
+    correct: 1
+    explanation: |
+      The cache key changed from `user:{id}` to `user:{id}:v2`. All cache lookups
+      miss, and instead of falling back to the database, the code returns empty arrays.
+
+      Items are safe in the database - they're just not being displayed!
+
+  - id: fix-code
+    title: "Fix the Cache Miss Handler"
+    type: code-fix
+    target_tab: cache-code
+    instructions: |
+      Fix the code to fetch from database when cache misses.
+      Add the database fallback logic that's currently commented out.
+    validation:
+      contains:
+        - "database.getInventory"
+        - "redis.set"
+
+  - id: prevent-future
+    title: "Prevent This Pattern"
+    type: multiple-choice
+    question: |
+      How should cache key changes be handled to avoid this issue?
+    options:
+      - "Never change cache key formats"
+      - "Migrate cache data before deployment, or implement graceful fallback to DB"
+      - "Delete all cache data before every deployment"
+      - "Show users a warning before changing keys"
+    correct: 1
+    explanation: |
+      Best approach: Either migrate cache data (populate new keys from old) or ensure
+      graceful fallback to database on cache miss. Never show empty data just because
+      cache is empty!
+
+completion:
+  summary: |
+    # The Empty Inventory Scare
+
+    Items weren't deleted - they just weren't being shown due to a cache key change
+    without proper fallback logic. Always ensure cache misses fall back to source of truth.
+
+  resources:
+    - title: "Cache Invalidation Best Practices"
+      url: "https://docs.redis.com/latest/develop/get-started/cache-patterns/"

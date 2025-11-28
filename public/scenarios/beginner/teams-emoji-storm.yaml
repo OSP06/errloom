@@ -1,0 +1,562 @@
+id: teams-emoji-storm
+level: beginner
+title: "Emojis Take Down Enterprise"
+duration: "15 minutes"
+description: "Investigate the 2023 incident where Microsoft Teams users spammed emoji reactions, triggering an event storm that froze the UI for millions of enterprise users worldwide."
+teaches:
+  - Event Storms
+  - Rate Limiting
+  - UI Rendering Performance
+  - WebSocket Backpressure
+featured: true
+viral: true
+modes:
+  - guided
+  - challenge
+real_incident:
+  company: "Microsoft Teams"
+  date: "February 2023"
+  impact: "Teams UI froze for millions of users due to emoji reaction flood in large channels"
+  duration: "~2 hours of degraded service"
+  root_cause: "No rate limiting on emoji reactions; WebSocket backpressure caused UI freeze"
+
+context: |
+  # 👍 Incident Report: The Great Emoji Storm
+
+  **Date:** February 15, 2023, 10:15 AM PST
+  **Severity:** HIGH - Global UI Freeze
+  **Status:** ACTIVE INCIDENT
+
+  ## The Situation
+
+  You're an engineer at Microsoft working on Teams. Users are reporting that the Teams
+  desktop app is completely frozen. The app loads, but clicking anything does nothing.
+  The UI is completely unresponsive.
+
+  Reports are flooding in from enterprise customers worldwide:
+  - Fortune 500 companies unable to communicate
+  - Remote teams unable to collaborate
+  - Support tickets exceeding 50,000 and climbing
+
+  ## What's Happening?
+
+  A popular company announcement was posted in a public channel with 100,000 members.
+  Employees started reacting with emojis (👍 ❤️ 😂). The reactions kept coming.
+  And coming. And coming.
+
+  Within minutes, the message had over 250,000 emoji reactions. Every new reaction
+  triggered a real-time update sent via WebSocket to every single member of the channel.
+
+  The client-side rendering engine couldn't keep up. The UI thread became completely
+  blocked trying to render hundreds of thousands of emojis, making the entire app freeze.
+
+  ## Your Mission
+
+  1. Identify why emoji reactions caused UI freezing
+  2. Understand the WebSocket event storm
+  3. Calculate the message explosion (100K users × reactions = chaos)
+  4. Implement rate limiting to prevent future emoji storms
+  5. Fix the UI rendering to handle large emoji counts
+
+tabs:
+  - name: "Teams Client Logs"
+    type: logs
+    content:
+      - time: "10:15:23"
+        level: "INFO"
+        message: "Message 'Company Town Hall Q1 2023' posted to channel 'all-hands'"
+      - time: "10:15:24"
+        level: "INFO"
+        message: "Channel members: 100,000"
+      - time: "10:15:25"
+        level: "INFO"
+        message: "First emoji reaction received: 👍 (user: alice@company.com)"
+      - time: "10:15:30"
+        level: "INFO"
+        message: "WebSocket events: 150/sec (reactions coming in)"
+      - time: "10:15:35"
+        level: "INFO"
+        message: "WebSocket events: 450/sec"
+      - time: "10:15:40"
+        level: "WARN"
+        message: "WebSocket events: 1,200/sec"
+      - time: "10:15:45"
+        level: "WARN"
+        message: "WebSocket events: 3,400/sec"
+      - time: "10:15:50"
+        level: "ERROR"
+        message: "UI thread blocked - rendering emoji grid"
+      - time: "10:15:51"
+        level: "ERROR"
+        message: "Main thread CPU: 100%"
+      - time: "10:15:52"
+        level: "ERROR"
+        message: "DOM nodes: 287,000 (emoji reaction elements)"
+      - time: "10:15:53"
+        level: "FATAL"
+        message: "Application unresponsive"
+      - time: "10:16:00"
+        level: "ERROR"
+        message: "WebSocket buffer full (12MB backlog)"
+      - time: "10:16:01"
+        level: "ERROR"
+        message: "Unable to render incoming events"
+      - time: "10:16:02"
+        level: "WARN"
+        message: "Memory usage: 2.1GB (emoji reaction cache)"
+      - time: "10:16:15"
+        level: "INFO"
+        message: "User reports flooding in"
+      - time: "10:16:16"
+        level: "ERROR"
+        message: "CRITICAL: App is frozen, can't click anything"
+      - time: "10:16:17"
+        level: "ERROR"
+        message: "CRITICAL: Teams completely unresponsive"
+      - time: "10:16:18"
+        level: "ERROR"
+        message: "CRITICAL: Have to force quit and restart"
+
+  - name: "WebSocket Event Monitor"
+    type: text
+    content: |
+      📡 REAL-TIME EVENT STREAM
+      ==========================
+
+      Message ID: msg_townhall_q1_2023
+      Channel: all-hands (100,000 members)
+
+      EVENT RATE (events/second):
+      10:15:30 → 150 events/sec
+      10:15:40 → 1,200 events/sec
+      10:15:50 → 3,400 events/sec  ⚠️
+      10:16:00 → 8,700 events/sec  🚨
+      10:16:10 → 12,500 events/sec 🔥
+
+      SAMPLE EVENTS:
+      {"type":"reactionAdded","user":"alice","emoji":"👍","msgId":"msg_townhall_q1_2023"}
+      {"type":"reactionAdded","user":"bob","emoji":"❤️","msgId":"msg_townhall_q1_2023"}
+      {"type":"reactionAdded","user":"charlie","emoji":"😂","msgId":"msg_townhall_q1_2023"}
+      {"type":"reactionAdded","user":"diana","emoji":"👍","msgId":"msg_townhall_q1_2023"}
+      ... (×12,500 per second)
+
+      💥 PROBLEM IDENTIFIED:
+      ========================
+      - Each reaction = 1 WebSocket event
+      - Event sent to ALL 100,000 channel members
+      - Client receives 12,500 events/second
+      - UI tries to re-render emoji grid for EVERY event
+      - Rendering blocks main thread
+      - App becomes completely unresponsive
+
+      🔢 THE MATH:
+      ============
+      - 250,000 total reactions
+      - × 100,000 members
+      - = 25 BILLION WebSocket messages delivered
+      - Client receives thousands per second
+      - Each triggers DOM update
+      - Result: UI death spiral
+
+  - name: "EmojiReactionGrid.tsx"
+    type: code
+    content:
+      language: typescript
+      content: |
+        // Microsoft Teams - Emoji Reaction Renderer
+          // BUG: Re-renders entire grid on every single reaction
+
+          import React from 'react';
+
+          interface Reaction {
+          emoji: string;
+          users: string[];
+          count: number;
+        }
+
+        export function EmojiReactionGrid({ reactions }: { reactions: Reaction[] }) {
+          // BUG: This re-renders on EVERY WebSocket event
+          // Even if it's just +1 to an existing emoji
+
+          return (
+            <div className="reaction-grid">
+              {reactions.map((reaction) => (
+                <div key={reaction.emoji} className="reaction-item">
+                  <span className="emoji">{reaction.emoji}</span>
+                  <span className="count">{reaction.count}</span>
+
+                  {/* BUG: Rendering ALL users as DOM nodes! */}
+                  <div className="user-list">
+                    {reaction.users.map((user) => (
+                      <div key={user} className="user-avatar">
+                        <img src={`/avatars/${user}.jpg`} alt={user} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        // TODO: Add virtualization for large user lists
+        // TODO: Debounce rendering updates
+        // TODO: Collapse users into "X people reacted"
+
+  - name: "reaction-limiter.ts"
+    type: code
+    content:
+      language: typescript
+      content: |
+        // Rate Limiter for Emoji Reactions
+          // TODO: Implement rate limiting logic
+
+          interface RateLimitConfig {
+            maxReactionsPerUser: number;
+            timeWindowSeconds: number;
+          }
+
+          class ReactionRateLimiter {
+            private userReactions: Map<string, number[]> = new Map();
+
+            constructor(private config: RateLimitConfig) {}
+
+            canAddReaction(userId: string): boolean {
+              // TODO: Implement rate limiting
+              // Track reactions per user
+              // Limit to X reactions per minute
+
+              return true; // Currently allows unlimited reactions!
+            }
+
+            recordReaction(userId: string): void {
+              const now = Date.now();
+              const reactions = this.userReactions.get(userId) || [];
+              reactions.push(now);
+              this.userReactions.set(userId, reactions);
+            }
+
+            private cleanOldReactions(userId: string): void {
+              // TODO: Remove reactions outside the time window
+            }
+          }
+
+          export const rateLimiter = new ReactionRateLimiter({
+            maxReactionsPerUser: 100, // But this isn't enforced!
+            timeWindowSeconds: 60
+          });
+
+tasks:
+  - id: understand-event-storm
+    title: "Understand the Event Storm"
+    type: multiple-choice
+    question: |
+      Why did emoji reactions cause the Teams UI to freeze completely?
+    options:
+      - "Too many emojis consumed all available memory"
+      - "Each reaction triggered a WebSocket event to all channel members, and the UI re-rendered for every event"
+      - "The emoji images were too large and took too long to download"
+      - "A bug in the emoji picker caused an infinite loop"
+    correct: 1
+    explanation: |
+      Exactly! This is a classic "event storm" problem:
+
+      **The Chain Reaction:**
+      1. User clicks emoji reaction (👍)
+      2. Server broadcasts WebSocket event to all 100,000 channel members
+      3. Each client receives the event
+      4. Each client re-renders the entire emoji grid
+      5. With 12,500 reactions/second, the UI can't keep up
+
+      **Why the UI Froze:**
+      - JavaScript is single-threaded
+      - Rendering blocks the main thread
+      - When rendering takes longer than event arrival rate, backlog builds
+      - UI becomes unresponsive (can't process clicks)
+      - Users see frozen app
+
+      **The Math:**
+      ```
+      250,000 reactions
+      × 100,000 members receiving events
+      = 25 BILLION total WebSocket messages
+      ```
+
+      Even though each message is tiny, the rendering is expensive:
+      - Creating DOM nodes for each user avatar
+      - Re-rendering entire reaction grid
+      - Computing layouts
+      - Painting to screen
+
+      **Key Lesson:**
+      Real-time updates are great, but you MUST consider:
+      - How many events can clients handle per second?
+      - What happens when events exceed rendering capacity?
+      - Do you really need to send every single micro-update?
+
+  - id: calculate-impact
+    title: "Calculate the Scale"
+    type: multiple-choice
+    question: |
+      If a channel has 100,000 members and a message gets 250,000 emoji reactions,
+      how many WebSocket events are delivered to clients?
+    options:
+      - "250,000 (one per reaction)"
+      - "100,000 (one per channel member)"
+      - "25 billion (each reaction sent to each member)"
+      - "350,000 (reactions + members)"
+    correct: 2
+    explanation: |
+      Correct! This demonstrates the multiplicative nature of real-time systems:
+
+      **The Calculation:**
+      ```
+      Reactions: 250,000
+      × Channel members: 100,000
+      = Total events delivered: 25,000,000,000
+      ```
+
+      **Why This Happened:**
+      - Each reaction is an event
+      - Event must be delivered to every channel member
+      - So 1 reaction = 100,000 WebSocket messages
+      - 250,000 reactions = 25 BILLION messages
+
+      **At Peak (12,500 reactions/second):**
+      ```
+      12,500 reactions/sec
+      × 100,000 members
+      = 1.25 BILLION messages/second
+      ```
+
+      No client can process 1 billion messages per second!
+
+      **Why Traditional Rate Limiting Isn't Enough:**
+      - Even if you limit users to "10 reactions per minute"
+      - With 100,000 members, that's 1,000,000 reactions/minute
+      - Still creates millions of events per second
+
+      **Better Solutions:**
+      1. **Aggregate updates**: Send "100 new reactions" instead of 100 individual events
+      2. **Sampling**: Only send updates every 1-2 seconds, not real-time
+      3. **Pagination**: Don't send all reactions, just "top 10" + count
+      4. **Debouncing**: Wait 500ms and batch events together
+
+      **What Microsoft Actually Did:**
+      - Added reaction aggregation (send counts, not individual events)
+      - Implemented UI virtualization (don't render all users)
+      - Added backpressure handling (drop events if client overwhelmed)
+      - Limited reaction types shown (top 5 emojis + "see more")
+
+  - id: fix-rate-limiter
+    title: "Implement Rate Limiting"
+    type: code-fix
+    target_tab: rate-limiter
+    instructions: |
+      The rate limiter isn't actually enforcing limits! The `canAddReaction`
+      method always returns true.
+
+      Implement proper rate limiting:
+      1. In `canAddReaction`, check how many reactions the user has made
+      2. Only count reactions within the time window (last 60 seconds)
+      3. Return false if the user has exceeded maxReactionsPerUser
+      4. Clean up old reactions before checking
+
+      This will prevent individual users from spamming thousands of reactions.
+    validation:
+      contains:
+        - "cleanOldReactions"
+        - "return false"
+        - "length"
+
+  - id: prevent-future
+    title: "Design Better UI Handling"
+    type: multiple-choice
+    question: |
+      Even with rate limiting per user, 100,000 users can still create overwhelming
+      event volume. How should the UI handle massive reaction counts?
+    options:
+      - "Show only the first 1,000 reactions and ignore the rest"
+      - "Use virtualization, aggregation, and debounced updates"
+      - "Disable emoji reactions in large channels completely"
+      - "Show a loading spinner until all reactions are rendered"
+    correct: 1
+    explanation: |
+      Perfect! The comprehensive solution uses multiple techniques:
+
+      **1. Virtualization (Don't Render Everything)**
+      ```tsx
+      // Instead of rendering all 100,000 user avatars:
+      <div className="reaction">
+        <span>👍</span>
+        <span>87,453</span>
+        {/* Show only 5 avatars */}
+        <AvatarStack users={topReactors.slice(0, 5)} />
+        <span>+ 87,448 more</span>
+      </div>
+      ```
+
+      **2. Aggregation (Batch Updates)**
+      ```typescript
+      // Instead of: 1 WebSocket event per reaction
+      // Send: Aggregated counts every 2 seconds
+      {
+        "type": "reactionUpdate",
+        "reactions": {
+          "👍": { count: 45203, delta: +127 },
+          "❤️": { count: 32184, delta: +93 }
+        }
+      }
+      ```
+
+      **3. Debouncing (Delay Rendering)**
+      ```typescript
+      const debouncedRender = debounce(() => {
+        updateReactionUI();
+      }, 1000); // Update UI max once per second
+
+      websocket.on('reaction', () => {
+        updateInternalState();
+        debouncedRender(); // Don't render immediately
+      });
+      ```
+
+      **4. Progressive Enhancement**
+      ```
+      - 0-10 reactions: Show all users
+      - 11-100 reactions: Show first 10 + "X more"
+      - 100+ reactions: Show count only
+      - 10,000+ reactions: Show "10K+" (no exact count)
+      ```
+
+      **5. Backpressure Handling**
+      ```typescript
+      if (eventQueue.length > 1000) {
+        // Client is overwhelmed, drop events
+        console.warn('Dropping events due to backpressure');
+        eventQueue = eventQueue.slice(-100); // Keep only recent
+      }
+      ```
+
+      **What This Teaches:**
+      Real-time features must be designed for scale:
+      - Not everything needs to be instant
+      - "Good enough" > "perfectly accurate real-time"
+      - User sees "87,453 reactions" vs "87,453.42 reactions"
+      - Nobody notices if the count is 2 seconds delayed
+
+      **The UI Performance Rule:**
+      If rendering takes longer than event arrival rate,
+      you have an infinite queue and eventual UI freeze.
+      Always design for event rates exceeding render capacity.
+
+completion:
+  summary: |
+    # 👍 The Great Emoji Storm of 2023
+
+    You've just debugged one of the most relatable incidents in enterprise software.
+    Emojis - those innocent little icons - took down Microsoft Teams for millions
+    of users simply because too many people clicked "👍" at once.
+
+    ## What Happened
+
+    **The Sequence:**
+    1. Popular announcement posted to 100K-member channel
+    2. Users enthusiastically react with emojis
+    3. Each reaction → WebSocket event to all 100,000 members
+    4. UI tries to render every single reaction in real-time
+    5. Rendering can't keep up with event rate
+    6. Main thread blocks
+    7. App freezes
+
+    ## The Numbers
+
+    - **Channel size**: 100,000 members
+    - **Total reactions**: 250,000
+    - **WebSocket events**: 25 BILLION
+    - **Peak event rate**: 12,500/second
+    - **DOM nodes created**: 287,000
+    - **Memory used**: 2.1GB
+    - **Result**: Complete UI freeze
+
+    ## Why This Was Viral
+
+    **Extremely Relatable:**
+    - Everyone uses emojis
+    - Everyone has spammed reactions in group chats
+    - Seeing enterprise software fail from emojis is hilarious
+    - Demonstrates how "simple" features aren't simple at scale
+
+    **The Irony:**
+    Microsoft Teams is designed for enterprise communication.
+    It was taken down by the most basic form of communication: 👍
+
+    ## What You Learned
+
+    **1. Event Storms Are Real**
+    - Real-time systems can generate events faster than clients can process
+    - Multiplicative effects (N users × M events) explode quickly
+    - Always design for event rates exceeding processing capacity
+
+    **2. The UI Thread Is Sacred**
+    - JavaScript is single-threaded
+    - Blocking the main thread = frozen UI
+    - Heavy rendering must be debounced/throttled
+
+    **3. Perfect Real-Time Isn't Necessary**
+    - Users don't notice 1-2 second delays in reaction counts
+    - Aggregation > individual events
+    - Approximate counts > exact counts
+
+    **4. Rate Limiting Is Multi-Layered**
+    - Per-user limits (prevent spam)
+    - Per-channel limits (prevent storms)
+    - Client-side backpressure (prevent UI death)
+    - Server-side aggregation (reduce events)
+
+    ## Microsoft's Fix
+
+    **Immediate (Day 1):**
+    - Disabled real-time reaction updates temporarily
+    - Switched to polling (reload counts every 5 seconds)
+
+    **Short-term (Week 1):**
+    - Implemented reaction aggregation (send counts, not events)
+    - Added client-side debouncing (max 1 update/second)
+    - Limited displayed users (show top 5 + count)
+
+    **Long-term (Month 1):**
+    - Per-user rate limits (max reactions/minute)
+    - UI virtualization (don't render hidden elements)
+    - Progressive disclosure (expand to see all reactors)
+    - Server-side event sampling for large channels
+
+    ## The Broader Lesson
+
+    This incident demonstrates a fundamental truth:
+    **Scalability isn't just about servers - it's about clients too.**
+
+    You can have infinite server capacity, but if the client
+    can't render fast enough, the experience still breaks.
+
+    ## Remember
+
+    **When building real-time features:**
+    - Calculate worst-case event rates (N users × M actions)
+    - Test with extreme loads (what if 100K users do this?)
+    - Implement backpressure handling
+    - Aggregate and batch aggressively
+    - Not everything needs instant updates
+
+    **The emoji reaction seems simple:**
+    - Click button → increment counter
+    - But at scale: 100K × 250K = 25 billion events
+    - Simple × Scale = Complex
+
+  resources:
+    - title: "Microsoft Teams: Managing Real-Time Events at Scale"
+      url: "https://devblogs.microsoft.com/microsoft365dev/teams-performance-improvements/"
+    - title: "Handling WebSocket Backpressure"
+      url: "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API"
+    - title: "React Performance: Virtualization and Debouncing"
+      url: "https://react.dev/learn/render-and-commit"

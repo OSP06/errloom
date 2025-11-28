@@ -1,0 +1,617 @@
+id: fastly-cdn-outage
+level: advanced
+title: "When Half the Internet Went Dark"
+duration: "25 minutes"
+description: "Investigate the 2021 Fastly CDN outage where a single customer configuration triggered a rare bug that took down Reddit, GitHub, CNN, Stack Overflow, and thousands of other sites globally."
+teaches:
+  - CDN Edge Computing
+  - Multi-Tenant Systems
+  - Rare-Path Bugs
+  - Configuration Validation
+  - Global Impact Analysis
+featured: true
+viral: true
+modes:
+  - guided
+  - challenge
+real_incident:
+  company: "Fastly CDN"
+  date: "June 8, 2021"
+  impact: "85% of Fastly's network returned errors, affecting thousands of major websites globally for ~1 hour"
+  duration: "~49 minutes"
+  root_cause: "Customer configuration change triggered undiscovered software bug in edge servers, causing cascading failures"
+
+context: |
+  # 🌐 CRITICAL: Global CDN Meltdown
+
+  **Date:** June 8, 2021, 9:47 AM UTC
+  **Location:** Fastly Edge Servers Worldwide
+  **Severity:** GLOBAL OUTAGE
+
+  ## The Situation
+
+  You're an SRE at Fastly, one of the world's largest CDNs. At 9:47 AM UTC, your edge servers
+  start returning HTTP 503 errors globally. Within minutes, some of the internet's biggest
+  sites go down:
+
+  - **Reddit** - completely offline
+  - **GitHub** - unavailable
+  - **Stack Overflow** - down
+  - **CNN, Guardian, NYT** - news sites offline
+  - **Twitch** - streaming interrupted
+  - **gov.uk** - UK government sites unreachable
+
+  85% of your network is returning errors. Millions of users worldwide are affected.
+
+  ## What Triggered It?
+
+  A single customer enabled a seemingly innocent configuration option. This configuration
+  had been used successfully by other customers before. But when combined with a specific
+  software update from May 12th, it triggered a latent bug in your edge server code.
+
+  The bug caused individual edge servers to crash. But due to a flaw in your recovery
+  mechanism, when they restarted they immediately crashed again - creating a crash loop.
+
+  ## Your Mission
+
+  1. Identify why a customer configuration change caused global failures
+  2. Understand how the bug remained hidden despite testing
+  3. Trace why 85% of servers failed, not just a few
+  4. Analyze why the failure cascaded instead of being isolated
+  5. Implement safeguards for configuration-triggered bugs
+
+  This outage made global headlines and demonstrated how fragile internet infrastructure can be.
+
+tabs:
+  - name: "Incident Timeline"
+    type: text
+    content: |
+      📅 FASTLY GLOBAL OUTAGE TIMELINE
+      ===================================
+
+      **9:47 AM UTC** - Incident Start
+      - Customer enables specific cache setting
+      - Edge servers begin crashing globally
+      - Error rate: 0% → 85% in 60 seconds
+
+      **9:48 AM UTC** - Detection
+      - PagerDuty storms with alerts
+      - 95% of monitoring checks failing
+      - Status page shows: "Investigating issues"
+      - Twitter explodes with reports
+
+      **9:50 AM UTC** - Impact Assessment
+      - Affected sites: Reddit, GitHub, Stack Overflow, CNN, NYT, Twitch
+      - Geographic scope: Global (all POPs)
+      - Error type: HTTP 503 Service Unavailable
+      - 85% of requests failing
+
+      **9:55 AM UTC** - Investigation
+      - Edge servers in crash-restart loop
+      - Pattern detected: servers crash on config load
+      - Recent changes reviewed
+      - Customer configuration identified as trigger
+
+      **10:15 AM UTC** - Mitigation Attempt #1
+      - Tried disabling problematic configuration
+      - No effect - servers still crashing
+      - Bug persists even after config removal
+
+      **10:27 AM UTC** - Root Cause Found
+      - Bug in May 12th software update
+      - Specific config combination triggers assertion failure
+      - Edge servers crash during config compilation
+
+      **10:36 AM UTC** - Mitigation Applied
+      - Emergency rollback of May 12th update initiated
+      - Gradual server recovery begins
+      - Error rate drops: 85% → 20%
+
+      **10:44 AM UTC** - Full Recovery
+      - All edge servers operational
+      - Traffic returning to normal
+      - Total outage duration: 49 minutes
+
+      **Estimated Impact:**
+      - Websites affected: 20,000+
+      - Users impacted: Hundreds of millions
+      - Revenue lost: Uncalculated (customer compensation required)
+
+  - name: "Edge Server Crash Logs"
+    type: logs
+    content:
+      - time: "09:47:23"
+        level: "INFO"
+        message: "Received configuration update (customer: acme-corp)"
+      - time: "09:47:24"
+        level: "INFO"
+        message: "Loading config version 2021.06.08-094723"
+      - time: "09:47:24"
+        level: "DEBUG"
+        message: "Parsing cache rules..."
+      - time: "09:47:24"
+        level: "DEBUG"
+        message: "Compiling VCL configuration..."
+      - time: "09:47:25"
+        level: "ERROR"
+        message: "Assertion failed in vcl_compiler.c:1459"
+      - time: "09:47:25"
+        level: "ERROR"
+        message: "Config combination triggers unhandled edge case"
+      - time: "09:47:25"
+        level: "FATAL"
+        message: "Condition: (cache_mode == MODE_IGNORE && ttl_override == ENABLED)"
+      - time: "09:47:25"
+        level: "FATAL"
+        message: "This combination was not tested during QA"
+      - time: "09:47:25"
+        level: "ERROR"
+        message: "CRASH: Segmentation fault (core dumped)"
+      - time: "09:47:26"
+        level: "INFO"
+        message: "Watchdog detected crash, restarting..."
+      - time: "09:47:28"
+        level: "INFO"
+        message: "Edge server restarting..."
+      - time: "09:47:29"
+        level: "INFO"
+        message: "Loading last known configuration..."
+      - time: "09:47:30"
+        level: "DEBUG"
+        message: "Parsing cache rules..."
+      - time: "09:47:30"
+        level: "DEBUG"
+        message: "Compiling VCL configuration..."
+      - time: "09:47:31"
+        level: "ERROR"
+        message: "Assertion failed in vcl_compiler.c:1459"
+      - time: "09:47:31"
+        level: "ERROR"
+        message: "CRASH: Segmentation fault (core dumped)"
+      - time: "09:47:32"
+        level: "INFO"
+        message: "Watchdog detected crash, restarting..."
+      - time: "09:47:34"
+        level: "INFO"
+        message: "Edge server restarting..."
+      - time: "09:47:35"
+        level: "ERROR"
+        message: "Assertion failed in vcl_compiler.c:1459"
+      - time: "09:47:35"
+        level: "ERROR"
+        message: "CRASH: Segmentation fault (core dumped)"
+      - time: "09:47:36"
+        level: "WARN"
+        message: "⚠️  CRASH LOOP DETECTED: Server restarting every 6 seconds"
+      - time: "09:47:36"
+        level: "WARN"
+        message: "⚠️  HTTP 503 returned to all requests during restart"
+
+  - name: "VCL Compiler Bug"
+    type: code
+    content:
+      language: c
+      content: |
+        // vcl_compiler.c - Fastly Edge Server Configuration Compiler
+        // Bug introduced in May 12, 2021 update
+
+        int compile_cache_config(struct vcl_config *cfg) {
+            // Handle cache mode configuration
+            if (cfg->cache_mode == MODE_IGNORE) {
+                // Skip cache entirely for this rule
+                disable_cache_layer();
+            }
+
+            // Handle TTL override
+            if (cfg->ttl_override == ENABLED) {
+                // Set custom TTL for cached objects
+                set_cache_ttl(cfg->ttl_value);
+            }
+
+            // BUG: Missing validation for incompatible combination
+            // If cache_mode is MODE_IGNORE, TTL override doesn't make sense
+            // because nothing is being cached!
+            //
+            // This combination was theoretically possible in the config API
+            // but was never actually used by any customer until June 8, 2021
+            //
+            // When this combination occurs:
+            // 1. disable_cache_layer() is called
+            // 2. set_cache_ttl() tries to configure non-existent cache
+            // 3. Assertion fails because cache layer was disabled
+            // 4. Process crashes
+
+            // MISSING CHECK:
+            // if (cfg->cache_mode == MODE_IGNORE && cfg->ttl_override == ENABLED) {
+            //     return ERR_INVALID_CONFIG;
+            // }
+
+            return SUCCESS;
+        }
+
+        // This code passed all existing tests because:
+        // 1. Tests only checked MODE_IGNORE in isolation
+        // 2. Tests only checked ttl_override in isolation
+        // 3. No test checked the COMBINATION
+        // 4. Configuration validation API allowed the combination
+
+  - name: "Configuration Validator"
+    type: code
+    content:
+      language: javascript
+      content: |
+        // Fastly Configuration Validation API
+        // TODO: Add validation for dangerous configuration combinations
+
+        function validateCacheConfig(config) {
+          const errors = [];
+
+          // Validate cache_mode
+          const validModes = ['CACHE', 'PASS', 'MODE_IGNORE'];
+          if (!validModes.includes(config.cache_mode)) {
+            errors.push('Invalid cache_mode');
+          }
+
+          // Validate ttl_override
+          if (config.ttl_override === 'ENABLED' && !config.ttl_value) {
+            errors.push('ttl_value required when ttl_override is ENABLED');
+          }
+
+          // TODO: Add validation for incompatible combinations
+          // HINT: What happens if cache is disabled but TTL is set?
+
+          return errors;
+        }
+
+        // Test case that should have caught the bug:
+        const dangerousConfig = {
+          cache_mode: 'MODE_IGNORE',
+          ttl_override: 'ENABLED',
+          ttl_value: 3600
+        };
+
+        const errors = validateCacheConfig(dangerousConfig);
+        if (errors.length === 0) {
+          console.log('⚠️  Configuration accepted - will crash edge servers!');
+        }
+
+  - name: "Global Impact Map"
+    type: text
+    content: |
+      🗺️  GLOBAL EDGE SERVER STATUS
+      ================================
+
+      🔴 CRITICAL (85% error rate)
+
+      North America East:
+        - NYC (JFK): 🔴 12/14 servers crash-looping
+        - Virginia (IAD): 🔴 18/20 servers crash-looping
+        - Toronto (YYZ): 🔴 8/10 servers crash-looping
+
+      North America West:
+        - San Francisco (SFO): 🔴 15/18 servers crash-looping
+        - Los Angeles (LAX): 🔴 14/16 servers crash-looping
+        - Seattle (SEA): 🔴 10/12 servers crash-looping
+
+      Europe:
+        - London (LHR): 🔴 22/24 servers crash-looping
+        - Frankfurt (FRA): 🔴 16/18 servers crash-looping
+        - Amsterdam (AMS): 🔴 12/14 servers crash-looping
+
+      Asia Pacific:
+        - Tokyo (NRT): 🔴 14/16 servers crash-looping
+        - Singapore (SIN): 🔴 10/12 servers crash-looping
+        - Sydney (SYD): 🔴 8/10 servers crash-looping
+
+      🟡 DEGRADED (Some servers operational)
+        - Mumbai, Seoul, São Paulo: Partial service
+
+      ⚠️ AFFECTED MAJOR SITES
+      ==========================
+      - Reddit: OFFLINE
+      - GitHub: OFFLINE
+      - Stack Overflow: OFFLINE
+      - CNN: OFFLINE
+      - The Guardian: OFFLINE
+      - New York Times: OFFLINE
+      - Twitch: OFFLINE
+      - gov.uk: OFFLINE
+      - Spotify: DEGRADED
+      - Amazon: DEGRADED
+      - PayPal: DEGRADED
+
+tasks:
+  - id: understand-trigger
+    title: "Identify the Trigger"
+    type: multiple-choice
+    question: |
+      Why did a customer configuration change cause 85% of Fastly's global
+      edge servers to crash simultaneously?
+    options:
+      - "The customer had admin access and accidentally deleted critical system files"
+      - "The configuration triggered a latent bug in the May 12th software update that crashed edge servers"
+      - "Fastly's servers were already overloaded and any config change would have caused crashes"
+      - "A DDoS attack coincided with the configuration change"
+    correct: 1
+    explanation: |
+      Exactly! This was a perfect storm of circumstances:
+
+      **The Timeline:**
+      - May 12, 2021: Software update deployed to edge servers
+      - Update contained a bug in configuration compiler
+      - Bug only triggered by a SPECIFIC combination of settings
+
+      **The Combination:**
+      ```
+      cache_mode = MODE_IGNORE  (disable caching)
+      +
+      ttl_override = ENABLED    (set custom cache TTL)
+      ```
+
+      **Why This Was Dangerous:**
+      - Setting a TTL when caching is disabled makes no logical sense
+      - But the API allowed this combination
+      - No customer had ever tried this combination before June 8th
+      - The combination wasn't tested during QA
+      - Code assumed if ttl_override is set, cache layer exists
+      - When cache was disabled, setting TTL caused assertion failure
+
+      **The Cascade:**
+      - Configuration distributed globally to all edge POPs
+      - Each server tried to load the config
+      - Each server crashed during compilation
+      - Watchdog restarted servers
+      - Servers loaded same config and crashed again
+      - Result: Crash loop across 85% of global infrastructure
+
+      **Key Lesson:**
+      Configuration options multiply exponentially. Testing individual
+      features isn't enough - you must test COMBINATIONS of features,
+      especially "impossible" combinations that the API allows but
+      nobody thinks to try.
+
+  - id: why-not-isolated
+    title: "Why Wasn't This Isolated?"
+    type: multiple-choice
+    question: |
+      Why did this bug affect 85% of servers globally instead of being
+      isolated to a single customer or region?
+    options:
+      - "Fastly deliberately routes all customers through all servers for redundancy"
+      - "The configuration was distributed globally to all edge servers, and the bug affected any server that processed it"
+      - "Hackers exploited the bug to attack multiple servers simultaneously"
+      - "The bug was in shared networking infrastructure that all servers depend on"
+    correct: 1
+    explanation: |
+      Correct! This illustrates a fundamental challenge in multi-tenant CDN architecture:
+
+      **Why Global Distribution:**
+      CDNs like Fastly operate by:
+      1. Distributing configurations to ALL edge POPs worldwide
+      2. Any edge server can serve any customer's content
+      3. This enables optimal routing and redundancy
+
+      **The Problem:**
+      - One customer's configuration update distributed globally
+      - Bug affected ALL servers that loaded this config
+      - Geographic isolation impossible - config went everywhere
+      - Recovery mechanism (watchdog restart) made it worse
+      - Servers kept reloading the poisoned config
+
+      **Why Wasn't There Isolation?**
+      - No configuration sandboxing or gradual rollout
+      - No "canary" edge servers to test configs
+      - Configuration changes applied globally, immediately
+      - No rollback mechanism for customer configs
+      - Crash recovery assumed crashes were transient, not config-related
+
+      **Better Architecture Would Have:**
+      - ✅ Tested customer configs in isolated environment first
+      - ✅ Gradual config rollout (start with 1% of servers)
+      - ✅ Automatic rollback on crash loops
+      - ✅ Configuration validation that catches illegal combinations
+      - ✅ Separate config versions per POP for isolation
+
+      **The Irony:**
+      The same global distribution that makes CDNs fast and reliable
+      also enabled a single config to take down the entire network.
+
+      This is why modern CDNs now implement:
+      - Staged configuration rollouts
+      - Canary testing for customer configs
+      - Automatic safety limits on config changes
+
+  - id: fix-validation
+    title: "Add Configuration Validation"
+    type: code-fix
+    target_tab: config-validation
+    instructions: |
+      The configuration validator didn't catch the dangerous combination
+      of MODE_IGNORE + ttl_override=ENABLED.
+
+      Add validation to detect when cache mode is set to ignore caching
+      but TTL override is enabled. This combination doesn't make logical
+      sense (can't set cache TTL when caching is disabled).
+
+      Add the missing validation check and push an error if this
+      combination is detected.
+    validation:
+      contains:
+        - "MODE_IGNORE"
+        - "ttl_override"
+        - "errors.push"
+
+  - id: prevent-future
+    title: "Design Better Safeguards"
+    type: multiple-choice
+    question: |
+      After this incident, Fastly needs to prevent configuration-triggered
+      bugs from causing global outages. What's the BEST approach?
+    options:
+      - "Require manual review of every customer configuration change by an engineer"
+      - "Disable the configuration API and make all changes through support tickets"
+      - "Implement config validation, canary testing, and gradual rollout with automatic rollback"
+      - "Limit each customer to only one edge server to prevent cascade failures"
+    correct: 2
+    explanation: |
+      Perfect! The comprehensive solution is:
+
+      **1. Configuration Validation (Prevent)**
+      ```javascript
+      // Check for illegal combinations
+      if (config.cache_mode === 'MODE_IGNORE' && config.ttl_override === 'ENABLED') {
+        return ERROR: "Cannot set TTL when caching is disabled";
+      }
+
+      // Validate against known-bad patterns
+      // Check configuration doesn't trigger known bugs
+      // Use formal verification for complex configs
+      ```
+
+      **2. Canary Testing (Detect)**
+      - Test new configs on 1-2 edge servers first
+      - Monitor error rates, crash rates, latency
+      - Only proceed if canary servers healthy
+      - Automatic abort if canary fails
+
+      **3. Gradual Rollout (Limit Blast Radius)**
+      ```
+      - 1% of servers: 5 minutes monitoring
+      - 10% of servers: 10 minutes monitoring
+      - 50% of servers: 15 minutes monitoring
+      - 100% of servers: if all previous stages healthy
+      ```
+
+      **4. Automatic Rollback (Recover)**
+      - Detect crash loops (3+ crashes in 60 seconds)
+      - Don't reload same config after crash
+      - Automatically rollback to last-known-good config
+      - Alert on rollback, require manual approval to retry
+
+      **5. Better Testing (Prevent)**
+      - Combinatorial testing of config options
+      - Fuzz testing with random config combinations
+      - Property-based testing
+      - Production-like staging environment
+
+      **What Fastly Actually Implemented:**
+      After this incident, Fastly added:
+      - ✅ Enhanced configuration validation
+      - ✅ Gradual configuration rollouts
+      - ✅ Canary testing for risky config changes
+      - ✅ Improved crash recovery (don't reload same config)
+      - ✅ Better internal testing of config combinations
+
+      **The Lesson:**
+      Don't rely on a single safety mechanism. Use defense in depth:
+      prevent, detect, limit, and recover.
+
+completion:
+  summary: |
+    # 🌐 When Configuration Met Bug
+
+    You've just investigated one of the most visible internet outages in history.
+    For 49 minutes, much of the internet's infrastructure was unavailable because
+    a customer enabled a configuration that triggered a bug.
+
+    ## The Perfect Storm
+
+    **Three things had to align:**
+    1. ✅ May 12th software update introduced a subtle bug
+    2. ✅ Configuration API allowed a logically invalid combination
+    3. ✅ A customer actually tried that combination on June 8th
+
+    None of these alone would have caused an outage. Together, they took down
+    85% of a major CDN's global infrastructure.
+
+    ## What Made This So Viral
+
+    **Global Impact:**
+    - Reddit went offline (millions noticed immediately)
+    - News sites (CNN, NYT, Guardian) went dark during major news cycle
+    - Developer tools (GitHub, Stack Overflow) unavailable
+    - Government sites (gov.uk) unreachable
+    - Streaming services (Twitch) interrupted
+
+    **Why It Made Headlines:**
+    - Visible to end users, not just developers
+    - Affected many of the internet's most popular sites
+    - Demonstrated internet fragility
+    - Happened during work hours in US/Europe
+
+    ## The Technical Lessons
+
+    **1. Combinatorial Explosion Is Real**
+    - Testing feature A ✅
+    - Testing feature B ✅
+    - Testing A + B ❌ ← This is where bugs hide
+
+    **2. Configuration Is Code**
+    - Customer configurations are just as dangerous as code changes
+    - Need same rigor: testing, validation, gradual rollout
+    - Can't assume configs are "safe" just because they're not code
+
+    **3. Multi-Tenant Systems Multiply Risk**
+    - One customer's config affected entire global infrastructure
+    - Need isolation mechanisms to contain blast radius
+    - Gradual rollout is essential, not optional
+
+    **4. Recovery Mechanisms Can Make Things Worse**
+    - Automatic restart is good for transient failures
+    - But causes crash loops for config-related bugs
+    - Need smarter recovery that detects patterns
+
+    ## Fastly's Response
+
+    **Immediate (Day 1):**
+    - Emergency rollback of May 12th update
+    - Disabled problematic configuration option
+    - Published transparent postmortem
+
+    **Short-term (Week 1):**
+    - Added validation for illegal config combinations
+    - Implemented canary testing for configurations
+    - Improved crash recovery to detect loops
+
+    **Long-term (Months 1-3):**
+    - Redesigned configuration deployment pipeline
+    - Added gradual rollout for all config changes
+    - Improved combinatorial testing
+    - Better isolation between customer configs
+
+    ## The Broader Impact
+
+    This outage reminded the world:
+    - The internet is more centralized than we think
+    - A handful of CDN providers serve most of the web
+    - Single points of failure still exist
+    - Configuration bugs can be as dangerous as code bugs
+
+    ## What You Should Remember
+
+    **For Multi-Tenant Systems:**
+    - Validate configurations thoroughly
+    - Test combinations, not just individual features
+    - Gradual rollout for EVERYTHING
+    - Design for blast radius containment
+
+    **For Reliability:**
+    - One customer should never be able to take down entire system
+    - Recovery mechanisms need to be smart, not just automatic
+    - Monitoring must detect crash loops and config poisoning
+
+    **For Your Career:**
+    This incident shows that even the best companies (Fastly is very good)
+    can have bugs that slip through. What matters is:
+    - Transparent communication
+    - Fast recovery
+    - Learning and improving
+    - Sharing lessons with the industry
+
+  resources:
+    - title: "Fastly's Postmortem (Official)"
+      url: "https://www.fastly.com/blog/summary-of-june-8-outage"
+    - title: "Technical Deep Dive into the Bug"
+      url: "https://www.fastly.com/blog/june-8-outage-analysis"
+    - title: "Global Impact Coverage"
+      url: "https://www.theverge.com/2021/6/8/22524418/fastly-outage-cdn-error-down-reddit-twitch-stack-overflow"

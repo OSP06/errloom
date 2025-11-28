@@ -1,0 +1,84 @@
+id: slack-redis-vip
+level: intermediate
+title: "The Drifting Redis VIP"
+duration: "23 minutes"
+description: "A maintenance change caused Slack's Redis VIP to drift to wrong nodes, producing strange half-working behavior across services."
+teaches:
+  - Virtual IPs (VIPs)
+  - Stateful Cache Routing
+  - Network Maintenance
+  - Partial Failure States
+modes:
+  - guided
+  - challenge
+
+context: |
+  # 💬 Slack Redis VIP Drift
+
+  After network maintenance, Slack is behaving weirdly:
+  - Some messages appear, others don't
+  - Read receipts are inconsistent
+  - Channel state is out of sync
+
+  Investigation shows: Redis VIP (virtual IP) drifted to a read replica instead
+  of the primary node. Writes go to replica (ignored), reads work partially.
+
+tabs:
+  - name: "Redis VIP Status"
+    type: text
+    content: |
+      VIP: 10.0.1.100 (redis-cache-primary)
+
+      Before Maintenance:
+      10.0.1.100 → redis-primary-1 ✓
+
+      After Maintenance:
+      10.0.1.100 → redis-replica-3 ⚠️ WRONG NODE!
+
+      Result: Writes go to replica (discarded)
+              Reads work but data is stale
+
+  - name: "Application Behavior"
+    type: logs
+    content:
+      - time: "15:23:11"
+        level: "INFO"
+        message: "User sends message: Hello"
+      - time: "15:23:12"
+        level: "WARN"
+        message: "WRITE to 10.0.1.100 (redis-replica-3)"
+      - time: "15:23:13"
+        level: "ERROR"
+        message: "Replica discards write (read-only)"
+      - time: "15:23:14"
+        level: "ERROR"
+        message: "User doesn't see their own message"
+      - time: "15:24:00"
+        level: "INFO"
+        message: "User refreshes channel"
+      - time: "15:24:01"
+        level: "INFO"
+        message: "READ from 10.0.1.100 (redis-replica-3)"
+      - time: "15:24:02"
+        level: "WARN"
+        message: "Returns stale data (missing recent messages)"
+
+tasks:
+  - id: diagnose-vip
+    title: "Diagnose VIP Problem"
+    type: multiple-choice
+    question: "Why are writes being ignored?"
+    options:
+      - "Redis is full and rejecting writes"
+      - "VIP points to read replica instead of primary, replica discards writes"
+      - "Network firewall is blocking write traffic"
+      - "Application has a bug in write logic"
+    correct: 1
+    explanation: |
+      VIP drifted to replica during maintenance. Replicas are read-only.
+      Writes are accepted but silently discarded!
+
+completion:
+  summary: |
+    VIP drift creates confusing partial failures. Writes disappear, reads return
+    stale data. Always verify VIPs point to correct nodes after network maintenance.

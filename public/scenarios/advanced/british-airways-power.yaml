@@ -1,0 +1,185 @@
+id: british-airways-power
+level: advanced
+title: "The Datacenter Power Catastrophe"
+duration: "32 minutes"
+description: "A contractor accidentally disconnected BA's entire datacenter from power. Systems rebooted in inconsistent order, corrupting critical services."
+teaches:
+  - Cold Boot Recovery
+  - Service Dependencies
+  - Startup Ordering
+  - Power Failure Recovery
+modes:
+  - guided
+  - challenge
+
+context: |
+  # ✈️ British Airways Power Failure (2017)
+
+  A contractor working on electrical systems accidentally cut power to BA's
+  primary datacenter. EVERYTHING went down. When power was restored, systems
+  came back in random order, violating startup dependencies.
+
+  Database started before storage was ready. Applications started before database
+  was ready. Corrupted state everywhere.
+
+  Result: 75,000 passengers stranded, 700+ flights cancelled, £80M+ in costs.
+
+tabs:
+  - name: "Power Failure Log"
+    type: logs
+    content:
+      - time: "09:45:00"
+        level: "ERROR"
+        message: "POWER LOST: Primary datacenter offline"
+      - time: "09:45:01"
+        level: "ERROR"
+        message: "All systems: OFFLINE"
+      - time: "09:45:02"
+        level: "WARN"
+        message: "UPS backup: Not connected to critical systems ⚠️"
+      - time: "09:45:03"
+        level: "ERROR"
+        message: "Generator: Failed to start ⚠️"
+      - time: "10:30:00"
+        level: "INFO"
+        message: "POWER RESTORED: Manual intervention"
+      - time: "10:30:01"
+        level: "WARN"
+        message: "Systems rebooting in random order..."
+
+  - name: "Uncontrolled Boot Sequence"
+    type: text
+    content: |
+      ❌ WRONG BOOT ORDER:
+
+      10:30:15 - App Server 1: STARTED (database not ready!)
+      10:30:18 - App Server 2: STARTED (database not ready!)
+      10:30:22 - Database 1: STARTING (storage not mounted!)
+      10:30:25 - Database 1: CORRUPT STATE (no storage)
+      10:30:30 - Storage Array: STARTED (too late)
+      10:30:35 - Database 2: STARTED (sees corrupt DB1)
+      10:30:40 - Load Balancer: STARTED (routing to broken apps)
+
+      ✅ CORRECT BOOT ORDER SHOULD BE:
+      1. Power & Network Infrastructure
+      2. Storage Arrays
+      3. Database Servers
+      4. Application Servers
+      5. Load Balancers
+      6. External Services
+
+  - name: "Service Dependencies"
+    type: code
+    content:
+      language: yaml
+      content: |
+        services:
+          - name: storage
+            depends_on: []  # No dependencies
+            boot_priority: 1
+
+          - name: database
+            depends_on:
+              - storage  # Must wait for storage!
+            boot_priority: 2
+
+          - name: app-server
+            depends_on:
+              - database  # Must wait for database!
+            boot_priority: 3
+
+          - name: load-balancer
+            depends_on:
+              - app-server  # Must wait for apps!
+            boot_priority: 4
+
+        # BUG: This config exists but was not enforced during cold boot!
+        # Systems came up in random order ignoring dependencies
+
+tasks:
+  - id: understand-cold-boot
+    title: "Why Did Random Boot Order Cause Corruption?"
+    type: multiple-choice
+    question: "Database started before storage mounted. What happens?"
+    options:
+      - "Database waits patiently for storage to become available"
+      - "Database fails to start and retries automatically"
+      - "Database starts with corrupt/missing data, apps connect and propagate corruption"
+      - "Database uses local disk as fallback"
+    correct: 2
+    explanation: |
+      Without proper dependency management:
+      - Database starts, can't find data, initializes with empty/corrupt state
+      - Apps connect to corrupt database
+      - Writes go to corrupt state
+      - Corruption spreads across distributed systems
+
+      Cold boot requires controlled, ordered startup!
+
+  - id: design-recovery
+    title: "Design Cold Boot Recovery"
+    type: multiple-choice
+    question: "How should datacenters handle power restoration?"
+    options:
+      - "Let everything auto-start and fix issues manually"
+      - "Implement controlled boot sequences respecting dependencies, with health checks between stages"
+      - "Keep everything offline and restore from backups"
+      - "Reboot all systems simultaneously for speed"
+    correct: 1
+    explanation: |
+      Proper cold boot recovery:
+
+      1. **Staged Boot Sequence**
+         - Infrastructure layer first (network, storage)
+         - Data layer second (databases)
+         - Application layer third (app servers)
+         - Gateway layer last (load balancers, CDN)
+
+      2. **Health Checks Between Stages**
+         - Don't proceed to next stage until current stage healthy
+         - Verify storage is ready before starting databases
+         - Verify databases are ready before starting apps
+
+      3. **Dependency Enforcement**
+         - Automated dependency graph
+         - systemd-style unit files with dependencies
+         - Orchestration tools (Kubernetes, etc.)
+
+      4. **Graceful Degradation**
+         - If component fails to start, don't cascade
+         - Clear error states vs corrupt states
+         - Fail-stop better than fail-corrupt
+
+      What BA lacked:
+      - No controlled boot sequence
+      - No dependency enforcement
+      - No health checks between stages
+      - UPS not connected to critical systems
+      - Generator failed to start
+
+completion:
+  summary: |
+    # The £80 Million Power Failure
+
+    Cold boot failures are catastrophic when startup dependencies aren't enforced.
+
+    Key lessons:
+    - Document service dependencies
+    - Implement controlled boot sequences
+    - Test disaster recovery regularly
+    - UPS and generators must be tested
+    - Health checks between boot stages
+
+    BA's failure led to:
+    - 75,000 passengers stranded
+    - 700+ flights cancelled
+    - £80M+ in costs and compensation
+    - Reputation damage
+
+    All because startup order wasn't controlled during power restoration.
+
+  resources:
+    - title: "British Airways IT Failure (Official Report)"
+      url: "https://www.theguardian.com/business/2017/may/27/british-airways-it-failure-power-supply-shutdown"
+    - title: "Designing for Cold Boot Recovery"
+      url: "https://sre.google/workbook/managing-load/"

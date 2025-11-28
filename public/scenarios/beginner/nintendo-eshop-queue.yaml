@@ -1,0 +1,179 @@
+id: nintendo-eshop-queue
+level: beginner
+title: "The Launch Day Collapse"
+duration: "16 minutes"
+description: "A new game release overloaded the Nintendo eShop queue system, causing stalls across the entire store. Debug the queue saturation."
+teaches:
+  - Queue Management
+  - Capacity Planning
+  - Rate Limiting
+  - Traffic Spikes
+modes:
+  - guided
+  - challenge
+
+context: |
+  # 🎮 Nintendo eShop Queue Meltdown
+
+  **Date:** March 2020
+  **Event:** Animal Crossing: New Horizons Launch
+  **Status:** eShop completely stalled
+
+  A major game just launched and millions of players are trying to download it simultaneously.
+  The eShop queue system is completely overwhelmed. Downloads aren't starting, the store
+  is unresponsive, and even browsing other games is impossible.
+
+  ## The Problem
+
+  The download queue was designed for normal traffic (1,000 concurrent downloads).
+  But 500,000 players all clicked "Download" within the first 5 minutes.
+
+  The queue filled up, started rejecting new entries, and the queue processor itself
+  became so overloaded it stopped processing ANY downloads.
+
+tabs:
+  - name: queue-stats
+    type: text
+    content: |
+      🔥 DOWNLOAD QUEUE STATUS
+      =========================
+
+      Queue Capacity: 10,000 slots
+      Current Queue Size: 487,293 ⚠️ OVERFLOW
+
+      Processing Rate: 0 downloads/sec ❌ STALLED
+      Expected Rate: 100 downloads/sec
+
+      Queue Age:
+      - Oldest item: 45 minutes ago
+      - Newest item: rejected (queue full)
+
+      ERROR: Queue processor deadlocked
+      ERROR: New downloads rejected
+      ERROR: Store browsing blocked (waiting on queue)
+
+  - name: queue-logs
+    type: logs
+    content:
+      - time: "12:00:00"
+        level: "INFO"
+        message: "Game launch detected"
+      - time: "12:00:05"
+        level: "INFO"
+        message: "50,000 download requests received"
+      - time: "12:00:10"
+        level: "WARN"
+        message: "Queue at 80% capacity"
+      - time: "12:00:15"
+        level: "ERROR"
+        message: "Queue full (10,000/10,000)"
+      - time: "12:00:16"
+        level: "ERROR"
+        message: "Rejecting new requests"
+      - time: "12:00:20"
+        level: "FATAL"
+        message: "Queue processor spending 100% CPU sorting queue"
+      - time: "12:00:21"
+        level: "FATAL"
+        message: "No downloads processing (all CPU on queue management)"
+  - name: queue-code
+    type: code
+    editable: true
+    content:
+      language: javascript
+      content: |
+        class DownloadQueue {
+          constructor() {
+            this.queue = [];
+            this.maxSize = 10000; // Too small for launch day!
+          }
+
+          async add(downloadRequest) {
+            if (this.queue.length >= this.maxSize) {
+              throw new Error('Queue full');
+            }
+
+            this.queue.push(downloadRequest);
+
+            // BUG: Sorting entire queue on every add!
+            // With 500k items, this takes forever
+            this.queue.sort((a, b) => a.priority - b.priority);
+          }
+
+          async process() {
+            while (true) {
+              if (this.queue.length === 0) {
+                await sleep(100);
+                continue;
+              }
+
+              // BUG: Processing one at a time instead of batching
+              const download = this.queue.shift();
+              await startDownload(download);
+            }
+          }
+        }
+
+tasks:
+  - id: identify-bottleneck
+    title: "Find the Queue Bottleneck"
+    type: multiple-choice
+    question: |
+      Why did the queue system stop processing downloads?
+    options:
+      - "Too many download requests crashed the servers"
+      - "The queue filled up and the processor spent all CPU sorting instead of processing downloads"
+      - "Nintendo's CDN ran out of bandwidth"
+      - "A DDoS attack overwhelmed the system"
+    correct: 1
+    explanation: |
+      The queue fills up and sorting 500k items on every insert consumes all CPU.
+      No downloads get processed because the system is busy managing the queue!
+
+      Also, processing one download at a time is too slow for this volume.
+
+  - id: fix-queue
+    title: "Optimize the Queue"
+    type: code-fix
+    target_tab: queue-code
+    instructions: |
+      Fix the performance issues:
+      1. Don't sort on every add - use a priority queue or sort less frequently
+      2. Process downloads in batches, not one at a time
+      3. Consider increasing maxSize or using overflow handling
+    validation:
+      contains:
+        - "batch"
+
+  - id: capacity-planning
+    title: "Plan for Launch Days"
+    type: multiple-choice
+    question: |
+      How should Nintendo prepare for major game launches?
+    options:
+      - "Disable the eShop during launches to prevent overload"
+      - "Only allow pre-orders, no launch-day downloads"
+      - "Scale queue capacity, use CDN, implement rate limiting per user"
+      - "Process downloads randomly to be fair"
+    correct: 2
+    explanation: |
+      Proper capacity planning includes:
+      - Scale queue to handle traffic spikes (10x normal capacity)
+      - Use CDN to distribute download load globally
+      - Rate limit per user (prevent one user from hogging bandwidth)
+      - Pre-load downloads for pre-orders
+      - Batch processing for efficiency
+
+completion:
+  summary: |
+    # Launch Day Lessons
+
+    Traffic spikes from popular events need special handling:
+    - Queue capacity planning (10x normal isn't enough for launches)
+    - Efficient queue algorithms (don't sort 500k items every insert!)
+    - Batch processing (handle multiple downloads concurrently)
+    - Rate limiting (prevent individual users from overwhelming system)
+
+  resources:
+    - title: "Queue Management Patterns"
+      url: "https://aws.amazon.com/sqs/features/"

@@ -1,0 +1,128 @@
+id: sony-psn-ddos
+level: advanced
+title: "Christmas Day DDoS Cascade"
+duration: "30 minutes"
+description: "Attackers hit PlayStation Network with unexpected traffic patterns. Load balancers collapsed into a retry storm. Debug the cascade failure."
+teaches:
+  - DDoS Mitigation
+  - Retry Storms
+  - Load Balancer Overload
+  - Backpressure Handling
+modes:
+  - guided
+  - challenge
+
+context: |
+  # 🎮 PSN Christmas DDoS (2014)
+
+  Christmas Day 2014. Millions of new PlayStation owners trying to sign in.
+  Plus a coordinated DDoS attack. PSN is completely offline.
+
+  The DDoS traffic patterns weren't anticipated. Load balancers became overwhelmed
+  and entered a retry storm - making the problem worse.
+
+tabs:
+  - name: "Traffic Analysis"
+    type: text
+    content: |
+      Normal Traffic: 100k requests/sec
+      DDoS Peak: 1.2M requests/sec (12x normal!)
+
+      Attack Pattern:
+      - Slowloris (slow HTTP connections)
+      - Connection exhaustion
+      - SSL renegotiation attacks
+      - Valid-looking login attempts
+
+  - name: "Load Balancer Logs"
+    type: logs
+    content:
+      - time: "10:15:00"
+        level: "INFO"
+        message: "Connections: 50k/100k (50% capacity)"
+      - time: "10:20:00"
+        level: "WARN"
+        message: "Connections: 95k/100k (95% capacity) ⚠️"
+      - time: "10:25:00"
+        level: "ERROR"
+        message: "Connections: 100k/100k (FULL)"
+      - time: "10:25:01"
+        level: "ERROR"
+        message: "New connections: REJECTED"
+      - time: "10:25:02"
+        level: "WARN"
+        message: "Backend timeouts increasing"
+      - time: "10:25:03"
+        level: "WARN"
+        message: "LB starts retrying failed requests"
+      - time: "10:25:04"
+        level: "ERROR"
+        message: "Retry storm begins"
+      - time: "10:25:05"
+        level: "ERROR"
+        message: "LB CPU: 100% (spending all time retrying)"
+      - time: "10:30:00"
+        level: "ERROR"
+        message: "CRITICAL: LB stopped accepting new connections"
+      - time: "10:30:01"
+        level: "ERROR"
+        message: "CRITICAL: Retry queue: 2.4 million requests"
+
+  - name: "lb-retry-config.yaml"
+    type: code
+    content:
+      language: yaml
+      content: |
+        retry_policy:
+          max_retries: 5  # BUG: Too many during DDoS!
+          retry_on:
+            - timeout
+            - connection_refused
+            - 5xx
+          backoff: none  # BUG: No exponential backoff!
+
+        # During DDoS, retries amplify the problem:
+        # 1M failed requests × 5 retries = 5M internal requests
+        # Load balancer DoS's itself!
+
+tasks:
+  - id: understand-retry-storm
+    title: "How Did Retries Make It Worse?"
+    type: multiple-choice
+    question: "DDoS sends 1M req/sec. LB retries each 5 times. What's the internal request rate?"
+    options:
+      - "1M req/sec (same as external)"
+      - "5M req/sec (1M × 5 retries)"
+      - "6M req/sec (original + retries)"
+      - "500k req/sec (half get through)"
+    correct: 2
+    explanation: |
+      Original: 1M req/sec from DDoS
+      Each fails and retries 5 times
+      Internal: 1M + (1M × 5) = 6M req/sec
+
+      The load balancer amplified the attack 6x through retries!
+
+  - id: fix-retry-policy
+    title: "Fix Retry Policy for DDoS"
+    type: code-fix
+    target_tab: retry-config
+    instructions: |
+      Modify retry policy to prevent retry storms during attacks:
+      1. Reduce max_retries during high load
+      2. Add exponential backoff
+      3. Add circuit breaker logic
+    validation:
+      contains:
+        - "backoff"
+
+completion:
+  summary: |
+    DDoS + aggressive retries = retry storm that amplifies the attack.
+
+    DDoS defenses:
+    - Rate limiting at edge
+    - Connection limits
+    - Smart retry policies (back off during load)
+    - Circuit breakers
+    - Traffic scrubbing (Cloudflare, Akamai)

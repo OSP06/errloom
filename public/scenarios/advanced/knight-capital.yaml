@@ -1,0 +1,530 @@
+id: knight-capital
+level: advanced
+title: "$440 Million in 30 Minutes"
+duration: "30 minutes"
+description: "Investigate the Knight Capital algorithmic trading disaster where outdated code on a single server caused $440M in losses in just 30 minutes, nearly bankrupting the company."
+teaches:
+  - Deployment Consistency
+  - Partial Rollouts
+  - Feature Flags
+  - Production Testing
+  - Multi-Server Coordination
+featured: true
+viral: true
+modes:
+  - guided
+  - challenge
+real_incident:
+  company: "Knight Capital Group"
+  date: "August 1, 2012"
+  impact: "$440 million loss in 45 minutes, company nearly bankrupted"
+  duration: "~45 minutes of bad trades"
+  root_cause: "Deployment script missed one server, reactivating old 'Power Peg' algorithm with new order flow"
+
+context: |
+  # 🚨 CRITICAL INCIDENT: Algorithmic Trading Meltdown
+
+  **Date:** August 1, 2012, 9:30 AM EST
+  **Location:** Knight Capital Group Trading Floor
+  **Severity:** CATASTROPHIC
+
+  ## The Situation
+
+  You're the lead engineer for Knight Capital's Retail Market Making (RMM) system.
+  Today is the launch of NYSE's new Retail Liquidity Program (RLP). Your team
+  deployed new trading software last night to all 8 production trading servers.
+
+  Or so you thought.
+
+  At 9:30 AM, the market opens. Within seconds, your system starts behaving erratically:
+  - Massive unexpected buy/sell orders flooding the market
+  - Stock prices wildly fluctuating
+  - Your risk limits being breached continuously
+  - $440 million being lost at a rate of $10 million per minute
+
+  ## What Went Wrong?
+
+  The deployment script failed silently on Server 8. While servers 1-7 got the new RLP code,
+  Server 8 still has the old 'Power Peg' algorithm from 2003 - code that was supposed to be
+  dead but was never removed.
+
+  The new code repurposed an old flag ('PNP' = Power Peg) to mean "parent order" for the
+  new RLP feature. Server 8 interpreted every incoming parent order as a Power Peg command,
+  causing it to execute thousands of unintended child orders.
+
+  ## Your Mission
+
+  1. Identify why Server 8 behaved differently from the other 7 servers
+  2. Understand how dead code caused catastrophic failure
+  3. Trace the deployment inconsistency
+  4. Implement safeguards to prevent partial deployments
+  5. Design kill switches for runaway trading algorithms
+
+  This is one of the most expensive software bugs in history.
+
+tabs:
+  - name: "Deployment Log"
+    type: logs
+    content:
+      - time: "02:00:00"
+        level: "INFO"
+        message: "Starting deployment: RLP-v1.0.0"
+      - time: "02:00:01"
+        level: "INFO"
+        message: "Deployment target: 8 production servers"
+      - time: "02:00:02"
+        level: "INFO"
+        message: "Stopping trading services..."
+      - time: "02:05:15"
+        level: "INFO"
+        message: "Server-1: Deployment successful ✓"
+      - time: "02:06:22"
+        level: "INFO"
+        message: "Server-2: Deployment successful ✓"
+      - time: "02:07:18"
+        level: "INFO"
+        message: "Server-3: Deployment successful ✓"
+      - time: "02:08:45"
+        level: "INFO"
+        message: "Server-4: Deployment successful ✓"
+      - time: "02:09:33"
+        level: "INFO"
+        message: "Server-5: Deployment successful ✓"
+      - time: "02:10:12"
+        level: "INFO"
+        message: "Server-6: Deployment successful ✓"
+      - time: "02:11:05"
+        level: "INFO"
+        message: "Server-7: Deployment successful ✓"
+      - time: "02:12:30"
+        level: "WARN"
+        message: "WARNING: SSH timeout for Server-8"
+      - time: "02:12:35"
+        level: "INFO"
+        message: "Retrying Server-8..."
+      - time: "02:12:40"
+        level: "WARN"
+        message: "Connection timeout (60s)"
+      - time: "02:12:41"
+        level: "WARN"
+        message: "SKIPPING Server-8 (manual intervention required)"
+      - time: "02:15:00"
+        level: "INFO"
+        message: "Deployment completed: 7/8 servers"
+      - time: "02:15:01"
+        level: "INFO"
+        message: "Starting trading services..."
+      - time: "02:20:00"
+        level: "INFO"
+        message: "All servers online"
+      - time: "02:20:15"
+        level: "WARN"
+        message: "⚠️  WARNING: Deployment verification skipped"
+      - time: "02:20:16"
+        level: "INFO"
+        message: "Production deployment marked as: SUCCESS"
+
+  - name: "Trading Activity Monitor"
+    type: logs
+    content:
+      - time: "09:30:00"
+        level: "INFO"
+        message: "Market open - RLP orders activated"
+      - time: "09:30:02"
+        level: "INFO"
+        message: "Processing RLP parent orders..."
+      - time: "09:30:05"
+        level: "WARN"
+        message: "Server-8: Executing Power Peg algorithm ⚠️"
+      - time: "09:30:06"
+        level: "WARN"
+        message: "Server-8: Created 1,000 child orders for AAPL"
+      - time: "09:30:07"
+        level: "WARN"
+        message: "Server-8: Created 2,400 child orders for GOOG"
+      - time: "09:30:08"
+        level: "WARN"
+        message: "Server-8: Created 3,200 child orders for MSFT"
+      - time: "09:30:10"
+        level: "WARN"
+        message: "⚠️  ALERT: Unusual trading volume detected"
+      - time: "09:30:12"
+        level: "WARN"
+        message: "⚠️  ALERT: Risk limits exceeded"
+      - time: "09:30:15"
+        level: "ERROR"
+        message: "🚨 CRITICAL: Position breached threshold"
+      - time: "09:30:18"
+        level: "ERROR"
+        message: "🚨 CRITICAL: Multiple stocks moving abnormally"
+      - time: "09:30:30"
+        level: "ERROR"
+        message: "Server-8 has executed 2.4 million orders"
+      - time: "09:31:00"
+        level: "ERROR"
+        message: "Estimated loss: $50 million"
+      - time: "09:32:00"
+        level: "ERROR"
+        message: "Estimated loss: $120 million"
+      - time: "09:33:00"
+        level: "ERROR"
+        message: "Estimated loss: $180 million"
+      - time: "09:35:00"
+        level: "WARN"
+        message: "Trading desk reports system malfunction"
+      - time: "09:40:00"
+        level: "INFO"
+        message: "Engineers trying to identify issue"
+      - time: "09:45:00"
+        level: "ERROR"
+        message: "Estimated loss: $440 million"
+      - time: "09:45:12"
+        level: "INFO"
+        message: "Manual intervention: All trading systems shut down"
+      - time: "09:45:15"
+        level: "INFO"
+        message: "Market impact: 148 stocks affected"
+
+  - name: "Server Version Check"
+    type: text
+    content: |
+      🖥️  PRODUCTION SERVER STATUS
+      ================================
+
+      Server-1: RLP-v1.0.0 | Build: 20120801-0200 | Status: NORMAL
+      Server-2: RLP-v1.0.0 | Build: 20120801-0200 | Status: NORMAL
+      Server-3: RLP-v1.0.0 | Build: 20120801-0200 | Status: NORMAL
+      Server-4: RLP-v1.0.0 | Build: 20120801-0200 | Status: NORMAL
+      Server-5: RLP-v1.0.0 | Build: 20120801-0200 | Status: NORMAL
+      Server-6: RLP-v1.0.0 | Build: 20120801-0200 | Status: NORMAL
+      Server-7: RLP-v1.0.0 | Build: 20120801-0200 | Status: NORMAL
+      Server-8: RMM-v0.9.2 | Build: 20030415-1830 | Status: ⚠️  MISMATCH
+
+      🔍 CODE ANALYSIS - Server 8
+      ============================
+      Contains DEAD CODE from 2003:
+      - Power Peg algorithm (deprecated 2005)
+      - Flag 'PNP' = Power Peg activation
+
+      New RLP code on Servers 1-7:
+      - Flag 'PNP' = Parent order (REPURPOSED)
+
+      ⚠️  CONFLICT DETECTED:
+      When Server-8 receives 'PNP' flag from load balancer,
+      it executes Power Peg instead of treating it as parent order!
+
+  - name: "Load Balancer Config"
+    type: code
+    content:
+      language: yaml
+      content: |
+        # Knight Capital Load Balancer Configuration
+        name: trading-lb-prod
+        algorithm: round-robin
+        health_check:
+          enabled: true
+          endpoint: /health
+          interval: 30s
+          timeout: 5s
+
+        backend_servers:
+          - host: trade-server-1.knight.internal
+            port: 8080
+            weight: 1
+          - host: trade-server-2.knight.internal
+            port: 8080
+            weight: 1
+          - host: trade-server-3.knight.internal
+            port: 8080
+            weight: 1
+          - host: trade-server-4.knight.internal
+            port: 8080
+            weight: 1
+          - host: trade-server-5.knight.internal
+            port: 8080
+            weight: 1
+          - host: trade-server-6.knight.internal
+            port: 8080
+            weight: 1
+          - host: trade-server-7.knight.internal
+            port: 8080
+            weight: 1
+          - host: trade-server-8.knight.internal  # ⚠️ OLD CODE
+            port: 8080
+            weight: 1
+
+        # NOTE: No version checking!
+        # NOTE: No deployment validation!
+        # NOTE: Health check only verifies process is running
+
+  - name: "deploy.sh"
+    type: code
+    content:
+      language: bash
+      content: |
+        #!/bin/bash
+        # Knight Capital Deployment Script
+        # CRITICAL: This script deploys to production trading servers
+
+        SERVERS="server-1 server-2 server-3 server-4 server-5 server-6 server-7 server-8"
+        DEPLOYMENT_PACKAGE="rlp-v1.0.0.tar.gz"
+
+        echo "Starting deployment..."
+
+        for server in $SERVERS; do
+          echo "Deploying to $server..."
+
+          # TODO: Add timeout handling
+          # TODO: Add failure detection
+          # TODO: Add rollback mechanism
+
+          scp $DEPLOYMENT_PACKAGE $server:/tmp/
+          ssh $server "cd /opt/trading && tar -xzf /tmp/$DEPLOYMENT_PACKAGE"
+
+          # Missing: Deployment verification
+          # Missing: Version check after deployment
+          # Missing: Fail-fast on error
+        done
+
+        echo "Deployment completed"
+        # Missing: Overall success verification
+
+tasks:
+  - id: identify-issue
+    title: "Identify the Inconsistency"
+    type: multiple-choice
+    question: |
+      Looking at the logs and server status, what caused Server-8 to behave
+      differently from the other 7 servers?
+    options:
+      - "Server-8 had a hardware failure that corrupted the new code"
+      - "The deployment script skipped Server-8 due to SSH timeout, leaving it with old code"
+      - "Server-8 was deliberately configured to use the old algorithm for testing"
+      - "A hacker modified Server-8 to execute unauthorized trades"
+    correct: 1
+    explanation: |
+      Correct! The deployment log shows the critical failure:
+
+      ```
+      [02:12:30] WARNING: SSH timeout for Server-8
+      [02:12:41] SKIPPING Server-8 (manual intervention required)
+      [02:15:00] Deployment completed: 7/8 servers
+      [02:20:16] Production deployment marked as: SUCCESS
+      ```
+
+      The deployment script encountered an SSH timeout for Server-8 and simply
+      skipped it, yet marked the overall deployment as "SUCCESS."
+
+      This meant:
+      - Servers 1-7: Running new RLP code (flag 'PNP' = parent order)
+      - Server 8: Running old 2003 code (flag 'PNP' = Power Peg algorithm)
+
+      When the load balancer sent orders with the 'PNP' flag to Server-8,
+      it activated the dormant Power Peg algorithm, creating thousands of
+      unintended child orders.
+
+  - id: dead-code-risk
+    title: "Understanding Dead Code Risk"
+    type: multiple-choice
+    question: |
+      The Power Peg algorithm was deprecated in 2005 but never removed from the codebase.
+      Why was this dead code so dangerous?
+    options:
+      - "Dead code always causes memory leaks that slow down the system"
+      - "The new code accidentally reused the old flag name, reactivating the dead code"
+      - "Dead code attracts hackers who exploit deprecated features"
+      - "Old code automatically gets executed when new deployments fail"
+    correct: 1
+    explanation: |
+      Exactly! This demonstrates a critical lesson in code maintenance:
+
+      **The Dangerous Flag Reuse:**
+      - 2003: 'PNP' flag activates Power Peg algorithm
+      - 2005: Power Peg deprecated, but code NOT removed
+      - 2012: New RLP feature repurposes 'PNP' flag to mean "parent order"
+      - Nobody remembered the old Power Peg code was still in the codebase
+
+      **What Happened:**
+      When Server-8 (with old code) received orders with the 'PNP' flag,
+      it interpreted them as Power Peg commands and started executing
+      thousands of child orders - the exact behavior Power Peg was designed to do.
+
+      **The Lesson:**
+      - DELETE dead code, don't just disable it
+      - Never reuse flag/variable names without checking history
+      - Old code is a ticking time bomb in your codebase
+      - Document what flags mean and maintain a registry
+
+      This $440M lesson taught the industry that "commented out code"
+      and "deprecated features" must be completely removed.
+
+  - id: fix-deployment
+    title: "Fix the Deployment Script"
+    type: code-fix
+    target_tab: deployment-script
+    instructions: |
+      The deployment script has critical flaws:
+      1. No error handling for failed deployments
+      2. No verification that deployment actually succeeded
+      3. Marks deployment as "SUCCESS" even when servers are skipped
+
+      Add these critical safeguards:
+      1. Check SSH exit codes and fail if deployment to ANY server fails
+      2. Verify the deployed version matches expected version
+      3. Exit with error code if any server is skipped
+
+      Add error handling that would have caught the Server-8 failure.
+    validation:
+      contains:
+        - "if"
+        - "exit 1"
+        - "version"
+      not_contains:
+        - "echo \"Deployment completed\""
+
+  - id: prevent-future
+    title: "Prevent Future Disasters"
+    type: multiple-choice
+    question: |
+      Your team is implementing safeguards to prevent this from ever happening again.
+      Which combination provides the BEST protection?
+    options:
+      - "Add more logging and send email notifications when deployments complete"
+      - "Require two engineers to manually verify each production deployment"
+      - "Implement deployment verification, version checks, and automated rollback on inconsistency"
+      - "Deploy to only one server at a time and wait 24 hours between each server"
+    correct: 2
+    explanation: |
+      Perfect! The comprehensive solution includes:
+
+      **1. Deployment Verification**
+      - After deployment, query each server for its version
+      - Compare actual versions against expected version
+      - FAIL if any mismatch detected
+      - Don't route traffic until verification passes
+
+      **2. Version Health Checks**
+      - Load balancer checks version endpoint, not just /health
+      - Remove servers from pool if version mismatches
+      - Alert on version inconsistencies
+
+      **3. Automated Rollback**
+      - If deployment fails on any server, rollback ALL servers
+      - Atomic deployments: all-or-nothing
+      - Maintain previous version for instant rollback
+
+      **4. Circuit Breakers for Trading**
+      - Kill switch for runaway algorithms
+      - Automatic shutoff when:
+        - Volume exceeds threshold
+        - Losses exceed limit
+        - Unusual order patterns detected
+      - Required manual approval to restart
+
+      **5. Blue-Green Deployments**
+      - Deploy to staging cluster first
+      - Verify all servers match
+      - Switch traffic only when verified
+      - Keep old cluster running for instant rollback
+
+      **What Knight Capital Lacked:**
+      - No deployment verification
+      - No version consistency checks
+      - No automated kill switch
+      - No gradual rollout (canary deployment)
+      - No way to detect server version drift
+
+      **The Aftermath:**
+      Knight Capital lost $440M and was acquired by competitor Getco.
+      The SEC fined them $12M for "failing to have adequate technology controls."
+
+      This incident changed financial trading regulations, requiring:
+      - Automated kill switches
+      - Deployment verification procedures
+      - Pre-deployment testing in production-like environments
+
+completion:
+  summary: |
+    # 💰 The $440 Million Bug
+
+    You've just investigated one of the most expensive software bugs in history.
+    In 45 minutes, a simple deployment error nearly bankrupted a major financial firm.
+
+    ## Root Cause Analysis
+
+    **The Perfect Storm:**
+    1. ❌ Deployment script silently skipped Server-8
+    2. ❌ No verification that all servers got the new code
+    3. ❌ Dead code from 2003 still in the codebase
+    4. ❌ Flag name 'PNP' reused without checking history
+    5. ❌ No kill switch for runaway trading
+    6. ❌ Load balancer didn't check server versions
+
+    ## The Timeline
+
+    - **02:12 AM**: Deployment fails on Server-8, script continues
+    - **02:20 AM**: Deployment marked "SUCCESS" despite 7/8 completion
+    - **09:30 AM**: Market opens, RLP orders start flowing
+    - **09:30:05**: Server-8 activates old Power Peg algorithm
+    - **09:45:12**: Trading halted after $440M in losses
+
+    ## What We Learned
+
+    **1. Partial Deployments Are Deadly**
+    In distributed systems, consistency is everything. One server
+    running old code can cause catastrophic failures.
+
+    **2. Dead Code Is Technical Debt**
+    The Power Peg code was 9 years old and "deprecated." But deprecated
+    doesn't mean safe - it means dangerous. Delete dead code immediately.
+
+    **3. Flag Names Are Forever**
+    Reusing variable/flag names without checking history is playing
+    Russian roulette with your codebase.
+
+    **4. Deployment Is Not "Set and Forget"**
+    - Verify every deployment
+    - Check version consistency
+    - Have rollback procedures
+    - Test in production-like environments
+
+    **5. Financial Systems Need Kill Switches**
+    Automated circuit breakers can stop disasters before they
+    cost hundreds of millions of dollars.
+
+    ## The Real Cost
+
+    - **Direct Loss**: $440 million in bad trades
+    - **Company Value**: Stock dropped 75% in two days
+    - **Jobs**: Massive layoffs followed
+    - **Independence**: Forced acquisition by competitor Getco
+    - **Reputation**: Industry credibility destroyed
+    - **Regulatory**: $12 million SEC fine
+
+    ## Industry Changes
+
+    This incident led to:
+    - ✅ Stricter SEC regulations on algorithmic trading
+    - ✅ Required kill switches for trading algorithms
+    - ✅ Pre-deployment testing requirements
+    - ✅ Mandatory deployment verification procedures
+    - ✅ Industry-wide adoption of blue-green deployments
+    - ✅ Version consistency checks as standard practice
+
+    ## The Takeaway
+
+    Knight Capital's failure wasn't just technical - it was cultural.
+    They had a deployment script that could silently fail, dead code
+    that nobody remembered, and no safeguards against inconsistency.
+
+    **Remember**: In production systems, especially financial ones,
+    "mostly deployed" is the same as "not deployed." Consistency
+    checking isn't optional - it's critical.
+
+  resources:
+    - title: "Knight Capital's $440M Error - SEC Report"
+      url: "https://www.sec.gov/litigation/admin/2013/34-70694.pdf"
+    - title: "The Rise and Fall of Knight Capital"
+      url: "https://dealbook.nytimes.com/2012/08/02/knight-capital-says-trading-mishap-cost-it-440-million/"
+    - title: "Knight Capital: A Case Study in Deployment Failure"
+      url: "https://dougseven.com/2014/04/17/knightmare-a-devops-cautionary-tale/"

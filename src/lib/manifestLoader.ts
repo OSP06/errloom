@@ -15,6 +15,9 @@ export interface ScenarioMetadata {
   level: string;
   completed: boolean;
   locked: boolean;
+  featured?: boolean;
+  viral?: boolean;
+  modes?: ('guided' | 'challenge')[];
 }
 
 export interface LevelStats {
@@ -125,4 +128,20 @@ export async function getNextScenario(level: string, currentScenarioId: string):
   }
 
   return scenarios[currentIndex + 1];
+}
+
+/**
+ * Get featured scenarios across all levels
+ */
+export async function getFeaturedScenarios(): Promise<ScenarioMetadata[]> {
+  const allScenarios = await getAllScenarios();
+  return allScenarios.filter(s => s.featured === true);
+}
+
+/**
+ * Get viral scenarios (like npm left-pad)
+ */
+export async function getViralScenarios(): Promise<ScenarioMetadata[]> {
+  const allScenarios = await getAllScenarios();
+  return allScenarios.filter(s => s.viral === true);
 }

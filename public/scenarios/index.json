@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generatedAt": "2025-11-23T19:23:38.511Z",
+  "generatedAt": "2025-11-28T02:39:32.563Z",
   "levels": {
     "beginner": {
       "scenarios": [
@@ -20,6 +20,50 @@
           "locked": false
         },
         {
+          "id": "linkedin-feature-flag",
+          "title": "One Toggle, Global Chaos",
+          "duration": "15 minutes",
+          "durationMinutes": 15,
+          "teaches": [
+            "Feature Flags",
+            "Configuration Management",
+            "Gradual Rollout",
+            "Blast Radius Control"
+          ],
+          "description": "Debug the 2021 LinkedIn incident where a single incorrect feature flag rollout caused pages across LinkedIn to fail instantly for millions of users worldwide.",
+          "level": "beginner",
+          "completed": false,
+          "locked": false,
+          "featured": true,
+          "viral": true,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
+        {
+          "id": "teams-emoji-storm",
+          "title": "Emojis Take Down Enterprise",
+          "duration": "15 minutes",
+          "durationMinutes": 15,
+          "teaches": [
+            "Event Storms",
+            "Rate Limiting",
+            "UI Rendering Performance",
+            "WebSocket Backpressure"
+          ],
+          "description": "Investigate the 2023 incident where Microsoft Teams users spammed emoji reactions, triggering an event storm that froze the UI for millions of enterprise users worldwide.",
+          "level": "beginner",
+          "completed": false,
+          "locked": false,
+          "featured": true,
+          "viral": true,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
+        {
           "id": "env-variable",
           "title": "The Missing Environment Variable",
           "duration": "16 minutes",
@@ -33,6 +77,26 @@
           "level": "beginner",
           "completed": false,
           "locked": false
+        },
+        {
+          "id": "nintendo-eshop-queue",
+          "title": "The Launch Day Collapse",
+          "duration": "16 minutes",
+          "durationMinutes": 16,
+          "teaches": [
+            "Queue Management",
+            "Capacity Planning",
+            "Rate Limiting",
+            "Traffic Spikes"
+          ],
+          "description": "A new game release overloaded the Nintendo eShop queue system, causing stalls across the entire store. Debug the queue saturation.",
+          "level": "beginner",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
         },
         {
           "id": "cors-error",
@@ -50,6 +114,26 @@
           "locked": false
         },
         {
+          "id": "paypal-zero-amount",
+          "title": "The Zero Dollar Fraud Alert",
+          "duration": "17 minutes",
+          "durationMinutes": 17,
+          "teaches": [
+            "Input Validation",
+            "Data Sanitization",
+            "Defensive Programming",
+            "Field Parsing"
+          ],
+          "description": "A malformed transaction payload tricked PayPal into treating payments as zero-value, triggering fraud rules and blocking legitimate transactions.",
+          "level": "beginner",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
+        {
           "id": "memory-leak",
           "title": "The Memory Leak",
           "duration": "18 minutes",
@@ -63,6 +147,26 @@
           "level": "beginner",
           "completed": false,
           "locked": false
+        },
+        {
+          "id": "steam-inventory-outage",
+          "title": "The Vanishing Inventory",
+          "duration": "18 minutes",
+          "durationMinutes": 18,
+          "teaches": [
+            "Deployment Rollbacks",
+            "Database Consistency",
+            "Cache Invalidation",
+            "User Communication"
+          ],
+          "description": "A faulty deployment made Steam marketplace inventories appear empty. Players thought their items were deleted. Debug the deployment inconsistency.",
+          "level": "beginner",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
         },
         {
           "id": "slow-api",
@@ -81,13 +185,75 @@
         }
       ],
       "stats": {
-        "count": 5,
-        "totalMinutes": 86,
-        "formattedDuration": "1h 26m"
+        "count": 10,
+        "totalMinutes": 167,
+        "formattedDuration": "2h 47m"
       }
     },
     "intermediate": {
       "scenarios": [
+        {
+          "id": "npm-left-pad",
+          "title": "The Left-Pad Disaster",
+          "duration": "20 minutes",
+          "durationMinutes": 20,
+          "teaches": [
+            "Dependency Management",
+            "Supply Chain Security",
+            "Package Registries",
+            "Breaking Changes"
+          ],
+          "description": "Experience the 2016 incident where 11 lines of code broke the internet. Thousands of JavaScript projects failed when a developer unpublished the 'left-pad' package from npm.",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false,
+          "featured": true,
+          "viral": true,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
+        {
+          "id": "stripe-webhook-loop",
+          "title": "The Infinite Webhook Loop",
+          "duration": "20 minutes",
+          "durationMinutes": 20,
+          "teaches": [
+            "Webhook Retry Logic",
+            "Circuit Breakers",
+            "External Integration Safety",
+            "Exponential Backoff"
+          ],
+          "description": "A third-party integration returned malformed responses, causing Stripe to retry webhooks indefinitely and spike internal load.",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
+        {
+          "id": "zoom-misrouted-traffic",
+          "title": "The Geo-Routing Mishap",
+          "duration": "21 minutes",
+          "durationMinutes": 21,
+          "teaches": [
+            "Geo-Routing",
+            "Traffic Management",
+            "Compliance Issues",
+            "Region Misconfiguration"
+          ],
+          "description": "Zoom accidentally routed non-China traffic through China servers, causing performance drops and compliance alarms.",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
         {
           "id": "failed-deployment",
           "title": "The Failed Deployment",
@@ -102,6 +268,26 @@
           "level": "intermediate",
           "completed": false,
           "locked": false
+        },
+        {
+          "id": "gcp-load-shedding",
+          "title": "The Overzealous Load Shedder",
+          "duration": "22 minutes",
+          "durationMinutes": 22,
+          "teaches": [
+            "Load Shedding",
+            "Rate Limiting",
+            "Cloud Platform Behavior",
+            "Cascading Failures"
+          ],
+          "description": "A bug in GCP's load-shedding logic triggered excessive 429 errors across unrelated services. Developers debugged their apps while the real villain was the cloud layer.",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
         },
         {
           "id": "rate-limit-cascade",
@@ -119,6 +305,26 @@
           "locked": false
         },
         {
+          "id": "slack-redis-vip",
+          "title": "The Drifting Redis VIP",
+          "duration": "23 minutes",
+          "durationMinutes": 23,
+          "teaches": [
+            "Virtual IPs (VIPs)",
+            "Stateful Cache Routing",
+            "Network Maintenance",
+            "Partial Failure States"
+          ],
+          "description": "A maintenance change caused Slack's Redis VIP to drift to wrong nodes, producing strange half-working behavior across services.",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
+        {
           "id": "queue-backup",
           "title": "The Message Queue Backup",
           "duration": "24 minutes",
@@ -132,6 +338,46 @@
           "level": "intermediate",
           "completed": false,
           "locked": false
+        },
+        {
+          "id": "shopify-token-explosion",
+          "title": "The Token Generation Storm",
+          "duration": "24 minutes",
+          "durationMinutes": 24,
+          "teaches": [
+            "Background Job Queues",
+            "Token Generation",
+            "Queue Saturation",
+            "Backpressure Mechanics"
+          ],
+          "description": "An authentication service started leaking token creation jobs, overwhelming background queues. Front-end logins slowed globally.",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
+        {
+          "id": "apple-icloud-uid",
+          "title": "The Duplicate UID Disaster",
+          "duration": "25 minutes",
+          "durationMinutes": 25,
+          "teaches": [
+            "UUID Generation",
+            "Identity Collision",
+            "Data Isolation",
+            "ID Generation Safety"
+          ],
+          "description": "iCloud accounts were briefly assigned conflicting internal IDs, causing cross-account visibility issues. Users saw other people's photos.",
+          "level": "intermediate",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
         },
         {
           "id": "db-pool-exhausted",
@@ -165,13 +411,79 @@
         }
       ],
       "stats": {
-        "count": 5,
-        "totalMinutes": 122,
-        "formattedDuration": "2h 2m"
+        "count": 12,
+        "totalMinutes": 277,
+        "formattedDuration": "4h 37m"
       }
     },
     "advanced": {
       "scenarios": [
+        {
+          "id": "fastly-cdn-outage",
+          "title": "When Half the Internet Went Dark",
+          "duration": "25 minutes",
+          "durationMinutes": 25,
+          "teaches": [
+            "CDN Edge Computing",
+            "Multi-Tenant Systems",
+            "Rare-Path Bugs",
+            "Configuration Validation",
+            "Global Impact Analysis"
+          ],
+          "description": "Investigate the 2021 Fastly CDN outage where a single customer configuration triggered a rare bug that took down Reddit, GitHub, CNN, Stack Overflow, and thousands of other sites globally.",
+          "level": "advanced",
+          "completed": false,
+          "locked": false,
+          "featured": true,
+          "viral": true,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
+        {
+          "id": "gcp-vpc-blackhole",
+          "title": "When Automation Deleted the Network",
+          "duration": "25 minutes",
+          "durationMinutes": 25,
+          "teaches": [
+            "Network Routing",
+            "Automation Safety",
+            "Partial Region Outages",
+            "Blast Radius Control",
+            "Change Validation"
+          ],
+          "description": "Investigate the 2019 Google Cloud incident where misconfigured network automation removed massive chunks of VPC routes, making entire regions unreachable for 3+ hours.",
+          "level": "advanced",
+          "completed": false,
+          "locked": false,
+          "featured": true,
+          "viral": true,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
+        {
+          "id": "netflix-chaos-monkey",
+          "title": "When Chaos Testing Got Too Chaotic",
+          "duration": "28 minutes",
+          "durationMinutes": 28,
+          "teaches": [
+            "Chaos Engineering",
+            "Autoscaling Limits",
+            "Resilience Testing",
+            "Kill Switch Design"
+          ],
+          "description": "Netflix's Chaos Monkey ran longer than intended in production, killing instances faster than autoscalers could recover. Engineers had to patch autoscaling mid-outage.",
+          "level": "advanced",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
         {
           "id": "cloudflare-bgp-hijack",
           "title": "Cloudflare's BGP Route Leak",
@@ -203,6 +515,69 @@
           "level": "advanced",
           "completed": false,
           "locked": false
+        },
+        {
+          "id": "knight-capital",
+          "title": "$440 Million in 30 Minutes",
+          "duration": "30 minutes",
+          "durationMinutes": 30,
+          "teaches": [
+            "Deployment Consistency",
+            "Partial Rollouts",
+            "Feature Flags",
+            "Production Testing",
+            "Multi-Server Coordination"
+          ],
+          "description": "Investigate the Knight Capital algorithmic trading disaster where outdated code on a single server caused $440M in losses in just 30 minutes, nearly bankrupting the company.",
+          "level": "advanced",
+          "completed": false,
+          "locked": false,
+          "featured": true,
+          "viral": true,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
+        {
+          "id": "sony-psn-ddos",
+          "title": "Christmas Day DDoS Cascade",
+          "duration": "30 minutes",
+          "durationMinutes": 30,
+          "teaches": [
+            "DDoS Mitigation",
+            "Retry Storms",
+            "Load Balancer Overload",
+            "Backpressure Handling"
+          ],
+          "description": "Attackers hit PlayStation Network with unexpected traffic patterns. Load balancers collapsed into a retry storm. Debug the cascade failure.",
+          "level": "advanced",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
+        },
+        {
+          "id": "british-airways-power",
+          "title": "The Datacenter Power Catastrophe",
+          "duration": "32 minutes",
+          "durationMinutes": 32,
+          "teaches": [
+            "Cold Boot Recovery",
+            "Service Dependencies",
+            "Startup Ordering",
+            "Power Failure Recovery"
+          ],
+          "description": "A contractor accidentally disconnected BA's entire datacenter from power. Systems rebooted in inconsistent order, corrupting critical services.",
+          "level": "advanced",
+          "completed": false,
+          "locked": false,
+          "modes": [
+            "guided",
+            "challenge"
+          ]
         },
         {
           "id": "discord-redis-failure",
@@ -254,15 +629,15 @@
         }
       ],
       "stats": {
-        "count": 5,
-        "totalMinutes": 160,
-        "formattedDuration": "2h 40m"
+        "count": 11,
+        "totalMinutes": 330,
+        "formattedDuration": "5h 30m"
       }
     }
   },
   "stats": {
-    "totalScenarios": 15,
-    "totalMinutes": 368,
-    "totalHours": 7
+    "totalScenarios": 33,
+    "totalMinutes": 774,
+    "totalHours": 13
   }
 }

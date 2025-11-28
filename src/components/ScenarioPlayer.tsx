@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Sparkles, BookOpen } from 'lucide-react';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Sparkles, BookOpen, Lock, Lightbulb, Target } from 'lucide-react';
 import { InteractiveLogViewer } from './InteractiveLogViewer';
 import { RealIncidentContext } from './RealIncidentContext';
 import { ScenarioTimer, PerformanceSummary } from './ScenarioTimer';
 import { TaskPanel } from './TaskPanel';
 import { TabNavigation } from './TabNavigation';
 import { CodeEditor } from './CodeEditor';
-import type { Scenario, TaskResult, LogEntry, CodeContent, Tab } from '../lib/types';
+import type { Scenario, TaskResult, LogEntry, CodeContent, Tab, ScenarioMode } from '../lib/types';
 import { loadScenario } from '../lib/scenarioLoader';
 import { getNextScenario as getNextScenarioFromManifest } from '../lib/manifestLoader';
 import { useProgressStore } from '../lib/progressStore';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 export function ScenarioPlayer() {
   const { level, scenarioId } = useParams();
+  const [searchParams] = useSearchParams();
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [currentTask, setCurrentTask] = useState(0);
@@ -22,6 +26,10 @@ export function ScenarioPlayer() {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedMode, setSelectedMode] = useState<ScenarioMode>(() => {
+    const modeFromUrl = searchParams.get('mode') as ScenarioMode | null;
+    return modeFromUrl || 'guided';
+  });
   const markScenarioComplete = useProgressStore((state) => state.markScenarioComplete);
 
   useEffect(() => {
@@ -30,6 +38,13 @@ export function ScenarioPlayer() {
         setLoading(true);
         const data = await loadScenario(level!, scenarioId!);
         setScenario(data);
+
+        // Set default mode based on scenario's available modes if not already set from URL
+        const modeFromUrl = searchParams.get('mode') as ScenarioMode | null;
+        if (!modeFromUrl && data.modes) {
+          // Default to first available mode
+          setSelectedMode(data.modes[0]);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load scenario');
       } finally {
@@ -39,7 +54,7 @@ export function ScenarioPlayer() {
     if (level && scenarioId) {
       load();
     }
-  }, [level, scenarioId]);
+  }, [level, scenarioId, searchParams]);
 
   const handleTaskComplete = (result: TaskResult) => {
     setTaskResults([...taskResults, result]);
@@ -88,27 +103,36 @@ export function ScenarioPlayer() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 to-gray-800 text-white">
-      {/* Timer */}
+      {/* Timer - adjusted position to not overlap */}
       {!completed && (
-        <ScenarioTimer
-          targetTime={scenario.duration.split(' ')[0]}
-          onComplete={setTimeElapsed}
-        />
+        <div className="fixed top-20 right-4 z-30">
+          <ScenarioTimer
+            targetTime={scenario.duration.split(' ')[0]}
+            onComplete={setTimeElapsed}
+          />
+        </div>
       )}
 
       {/* Top bar */}
-      <div className="border-b border-gray-700 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-40">
+      <div className="border-b border-gray-700 bg-gray-900/95 backdrop-blur-md sticky top-0 z-40 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link
-              to={`/${level}`}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
+            <Button variant="ghost" size="icon" asChild>
+              <Link to={`/${level}`}>
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
+            </Button>
             <div>
-              <h1 className="font-bold font-mono text-lg">{scenario.title}</h1>
-              <p className="text-sm text-gray-400 capitalize">
+              <div className="flex items-center gap-2">
+                <h1 className="font-bold font-mono text-lg">{scenario.title}</h1>
+                {selectedMode === 'guided' && (
+                  <Badge className="bg-blue-500 text-white">
+                    <Lightbulb className="w-3 h-3 mr-1" />
+                    Guided
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground capitalize">
                 {scenario.level} • {scenario.duration}
               </p>
             </div>
@@ -116,24 +140,22 @@ export function ScenarioPlayer() {
 
           <div className="flex items-center gap-3">
             {/* Progress indicator */}
-            <div className="px-4 py-2 bg-gray-800 rounded-lg">
-              <span className="text-sm">
-                Task {currentTask + 1}/{scenario.tasks.length}
-              </span>
-            </div>
+            <Badge variant="secondary" className="px-4 py-2 hidden sm:flex">
+              Task {currentTask + 1}/{scenario.tasks.length}
+            </Badge>
 
-            {/* AI Hint button (coming soon) */}
-            <button
+            {/* AI Hint button - locked state */}
+            <Button
               disabled
-              className="px-4 py-2 bg-gray-700 text-gray-500 rounded-lg flex items-center gap-2 cursor-not-allowed relative group"
-              title="AI Hints coming soon!"
+              variant="outline"
+              className="relative group border-gray-700 opacity-60 cursor-not-allowed"
+              title="AI Hints feature coming soon!"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>AI Hint</span>
-              <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                Coming Soon!
-              </span>
-            </button>
+              <Lock className="w-4 h-4 mr-2 text-gray-500" />
+              <Sparkles className="w-4 h-4 mr-2 text-gray-500" />
+              <span className="hidden sm:inline">AI Hint</span>
+              <Badge className="ml-2 bg-purple-600 text-white text-xs">Soon</Badge>
+            </Button>
           </div>
         </div>
       </div>
@@ -180,6 +202,56 @@ export function ScenarioPlayer() {
                   </p>
                 </div>
 
+                {/* Mode Switcher - Discreet */}
+                {scenario.modes && scenario.modes.length > 1 && (
+                  <div className="mb-4 flex items-center justify-between p-3 bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-lg shadow-lg">
+                    <span className="text-sm text-gray-400">Learning Mode:</span>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant={selectedMode === 'guided' ? 'default' : 'outline'}
+                        onClick={() => setSelectedMode('guided')}
+                        className={selectedMode === 'guided' ? 'bg-blue-500 hover:bg-blue-600' : 'border-gray-600'}
+                      >
+                        <Lightbulb className="w-3 h-3 mr-1" />
+                        Guided
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={selectedMode === 'challenge' ? 'default' : 'outline'}
+                        onClick={() => setSelectedMode('challenge')}
+                        className={selectedMode === 'challenge' ? 'bg-red-500 hover:bg-red-600' : 'border-gray-600'}
+                      >
+                        <Target className="w-3 h-3 mr-1" />
+                        Challenge
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Guided Mode Hints Panel */}
+                {selectedMode === 'guided' && (
+                  <Card className="mb-6 border-blue-500/50 bg-blue-900/30 backdrop-blur-lg shadow-lg shadow-blue-500/10">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <Lightbulb className="w-5 h-5 text-blue-400 mt-0.5 shrink-0" />
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-blue-100 mb-2">Guided Mode Active</h3>
+                          <div className="text-sm text-gray-300 space-y-2">
+                            <p>💡 <strong>Tips:</strong></p>
+                            <ul className="list-disc list-inside space-y-1 text-gray-400">
+                              <li>Read the context and logs carefully</li>
+                              <li>Look for error patterns and timestamps</li>
+                              <li>Each task builds on the previous one</li>
+                              <li>Take your time - learning is the goal!</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 <TaskPanel
                   task={scenario.tasks[currentTask]}
                   onComplete={handleTaskComplete}
@@ -216,11 +288,13 @@ function TabContent({ tab }: { tab: Tab }) {
   }
 
   return (
-    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-      <pre className="whitespace-pre-wrap text-gray-300 font-mono text-sm">
-        {tab.content as string}
-      </pre>
-    </div>
+    <Card className="p-6">
+      <CardContent className="p-0">
+        <pre className="whitespace-pre-wrap text-muted-foreground font-mono text-sm">
+          {tab.content as string}
+        </pre>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -267,16 +341,18 @@ function CompletionScreen({
       />
 
       {/* Completion summary */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <div
-          className="prose prose-invert max-w-none whitespace-pre-line"
-          dangerouslySetInnerHTML={{ __html: scenario.completion.summary }}
-        />
-      </div>
+      <Card className="p-6">
+        <CardContent className="p-0">
+          <div
+            className="prose prose-invert max-w-none whitespace-pre-line"
+            dangerouslySetInnerHTML={{ __html: scenario.completion.summary }}
+          />
+        </CardContent>
+      </Card>
 
       {/* Resources */}
       {scenario.completion.resources && scenario.completion.resources.length > 0 && (
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <Card className="p-6">
           <h3 className="font-bold text-lg mb-4">Continue Learning</h3>
           <div className="space-y-3">
             {scenario.completion.resources.map((resource, i) => (
@@ -296,7 +372,7 @@ function CompletionScreen({
               </a>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Real incident context */}
@@ -306,18 +382,18 @@ function CompletionScreen({
 
       {/* Next actions */}
       <div className="flex gap-4">
-        <Link
-          to={`/${scenario.level}`}
-          className="flex-1 py-3 px-6 bg-gray-800 hover:bg-gray-700 text-center rounded-lg font-semibold transition-colors"
-        >
-          Back to Scenarios
-        </Link>
-        <button
+        <Button variant="secondary" className="flex-1" size="lg" asChild>
+          <Link to={`/${scenario.level}`}>
+            Back to Scenarios
+          </Link>
+        </Button>
+        <Button
           onClick={handleNextScenario}
-          className="flex-1 py-3 px-6 bg-linear-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-center rounded-lg font-semibold transition-all"
+          className="flex-1 bg-linear-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+          size="lg"
         >
           {nextScenario ? 'Next Scenario →' : 'View All Scenarios'}
-        </button>
+        </Button>
       </div>
     </div>
   );

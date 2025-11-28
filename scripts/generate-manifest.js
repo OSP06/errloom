@@ -51,7 +51,7 @@ async function loadScenario(level, filename) {
   const data = yaml.load(content);
 
   // Extract only the metadata we need for the manifest
-  return {
+  const metadata = {
     id: data.id,
     title: data.title,
     duration: data.duration,
@@ -62,6 +62,19 @@ async function loadScenario(level, filename) {
     completed: false,
     locked: false
   };
+
+  // Add optional fields if they exist
+  if (data.featured) {
+    metadata.featured = data.featured;
+  }
+  if (data.viral) {
+    metadata.viral = data.viral;
+  }
+  if (data.modes && Array.isArray(data.modes)) {
+    metadata.modes = data.modes;
+  }
+
+  return metadata;
 }
 
 /**

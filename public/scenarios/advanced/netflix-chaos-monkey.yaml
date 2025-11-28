@@ -1,0 +1,134 @@
+id: netflix-chaos-monkey
+level: advanced
+title: "When Chaos Testing Got Too Chaotic"
+duration: "28 minutes"
+description: "Netflix's Chaos Monkey ran longer than intended in production, killing instances faster than autoscalers could recover. Engineers had to patch autoscaling mid-outage."
+teaches:
+  - Chaos Engineering
+  - Autoscaling Limits
+  - Resilience Testing
+  - Kill Switch Design
+modes:
+  - guided
+  - challenge
+
+context: |
+  # 🐵 Chaos Monkey Runaway
+
+  Chaos Monkey - Netflix's tool for randomly terminating instances to test resilience -
+  was supposed to run for 1 hour in production. It ran for 4 hours.
+
+  It killed instances faster than autoscalers could replace them. Services degraded
+  as available capacity dropped. Engineers had to manually stop Chaos Monkey and
+  patch autoscaling logic while fighting the outage.
+
+tabs:
+  - name: "Chaos Monkey Activity"
+    type: logs
+    content:
+      - time: "10:00:00"
+        level: "INFO"
+        message: "Chaos Monkey: START (duration: 1 hour)"
+      - time: "10:15:00"
+        level: "INFO"
+        message: "Terminated: streaming-1, streaming-4, streaming-7"
+      - time: "10:30:00"
+        level: "INFO"
+        message: "Terminated: api-3, api-9, api-12"
+      - time: "10:45:00"
+        level: "INFO"
+        message: "Terminated: db-replica-2, cache-5"
+      - time: "11:00:00"
+        level: "WARN"
+        message: "⚠️ SHOULD STOP HERE (1 hour elapsed)"
+      - time: "11:00:01"
+        level: "ERROR"
+        message: "BUG: Stop signal not received"
+      - time: "11:15:00"
+        level: "WARN"
+        message: "Terminated: streaming-15, streaming-23, streaming-31"
+      - time: "11:30:00"
+        level: "ERROR"
+        message: "CRITICAL: Available capacity < 60%"
+      - time: "13:45:00"
+        level: "INFO"
+        message: "Manual intervention: KILL -9 chaos-monkey"
+      - time: "14:00:00"
+        level: "INFO"
+        message: "Chaos Monkey: STOPPED (ran 4 hours instead of 1)"
+
+  - name: "Autoscaler Logs"
+    type: logs
+    content:
+      - time: "11:30:00"
+        level: "INFO"
+        message: "Instances killed: 47"
+      - time: "11:30:01"
+        level: "INFO"
+        message: "Launching replacement instances..."
+      - time: "11:35:00"
+        level: "INFO"
+        message: "New instances: 23 (slow launch time)"
+      - time: "11:40:00"
+        level: "WARN"
+        message: "Instances killed: 19 more (Chaos Monkey still running!)"
+      - time: "11:40:01"
+        level: "WARN"
+        message: "Net capacity: -26 instances"
+      - time: "12:00:00"
+        level: "ERROR"
+        message: "CRITICAL: Autoscaler can't keep up"
+      - time: "12:00:01"
+        level: "WARN"
+        message: "Kill rate: 12 instances/hour"
+      - time: "12:00:02"
+        level: "WARN"
+        message: "Launch rate: 8 instances/hour"
+      - time: "12:00:03"
+        level: "ERROR"
+        message: "Net: -4 instances/hour (trending down!)"
+
+tasks:
+  - id: identify-problem
+    title: "Why Couldn't Autoscaler Keep Up?"
+    type: multiple-choice
+    question: "Autoscaler launches 8 instances/hour, Chaos Monkey kills 12/hour. What's the outcome?"
+    options:
+      - "System stabilizes at lower capacity"
+      - "Net loss of 4 instances/hour - eventual capacity exhaustion"
+      - "Autoscaler will eventually catch up"
+      - "More instances are launched than killed"
+    correct: 1
+    explanation: |
+      When kill rate exceeds launch rate, capacity trends downward indefinitely.
+      Instance launch takes time (AMI boot, health checks, warmup).
+      Chaos Monkey kills instantly.
+
+  - id: fix-chaos-testing
+    title: "Design Better Chaos Testing"
+    type: multiple-choice
+    question: "How should chaos testing be designed to prevent runaway scenarios?"
+    options:
+      - "Never run chaos testing in production"
+      - "Implement kill switches, time limits, capacity floor checks, gradual ramp-up"
+      - "Let chaos testing run indefinitely to find real issues"
+      - "Only run chaos testing manually with constant monitoring"
+    correct: 1
+    explanation: |
+      Modern chaos engineering includes:
+      - Hard time limits (auto-stop after duration)
+      - Capacity floor (stop if capacity < 70%)
+      - Kill switches (manual emergency stop)
+      - Gradual ramp (start slow, increase if stable)
+      - Steady-state monitoring (rollback if SLOs violated)
+      - Blast radius limits (chaos in one region at a time)
+
+completion:
+  summary: |
+    Chaos engineering is essential but must have limits. Design for:
+    - Automatic stop conditions
+    - Capacity floor protection
+    - Kill switches
+    - Gradual intensity increase
+
+    Even resilience tools need resilience safeguards!
